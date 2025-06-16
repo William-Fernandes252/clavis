@@ -30,19 +30,3 @@ type Store interface {
 	Deleter
 	Scanner
 }
-
-// StoreConfig holds common configuration for all store implementations
-type StoreConfig struct {
-	LoggingLevel      int // 0=DEBUG, 1=INFO, 2=WARNING, 3=ERROR
-	NumVersionsToKeep int // Number of versions to keep for each key
-}
-
-// GetLoggingLevel returns the logging level
-func (sc StoreConfig) GetLoggingLevel() int {
-	return sc.LoggingLevel
-}
-
-// GetNumVersions returns the number of versions to keep
-func (sc StoreConfig) GetNumVersions() int {
-	return sc.NumVersionsToKeep
-}

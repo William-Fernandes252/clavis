@@ -1,8 +1,10 @@
-package store
+package badger
 
 import (
 	"os"
 	"testing"
+
+	"github.com/William-Fernandes252/clavis/internal/store"
 )
 
 func TestBadgerStore_Configuration(t *testing.T) {
@@ -15,7 +17,7 @@ func TestBadgerStore_Configuration(t *testing.T) {
 
 	t.Run("DefaultConfiguration", func(t *testing.T) {
 		// Test the backward-compatible constructor
-		store, err := NewBadgerStoreWithPath(tempDir + "/default")
+		store, err := NewWithPath(tempDir + "/default")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -44,8 +46,8 @@ func TestBadgerStore_Configuration(t *testing.T) {
 
 	t.Run("CustomConfiguration", func(t *testing.T) {
 		// Test the dependency injection constructor with custom config
-		config := &BadgerConfig{
-			StoreConfig: StoreConfig{
+		config := &BadgerStoreConfig{
+			StoreConfig: store.StoreConfig{
 				LoggingLevel:      1, // INFO level for tests
 				NumVersionsToKeep: 3, // Keep more versions for tests
 			},
@@ -53,7 +55,7 @@ func TestBadgerStore_Configuration(t *testing.T) {
 			SyncWrites: false, // Faster for tests
 		}
 
-		store, err := NewBadgerStore(config)
+		store, err := New(config)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -82,7 +84,7 @@ func TestBadgerStore_Configuration(t *testing.T) {
 
 	t.Run("NilConfigurationError", func(t *testing.T) {
 		// Test that nil configuration returns an error
-		_, err := NewBadgerStore(nil)
+		_, err := New(nil)
 		if err == nil {
 			t.Error("Expected error for nil configuration")
 		}
@@ -586,8 +588,8 @@ func createTestStore(t *testing.T) *BadgerStore {
 		os.RemoveAll(tempDir)
 	})
 
-	config := &BadgerConfig{
-		StoreConfig: StoreConfig{
+	config := &BadgerStoreConfig{
+		StoreConfig: store.StoreConfig{
 			LoggingLevel:      3, // ERROR level for quiet tests
 			NumVersionsToKeep: 1,
 		},
@@ -595,7 +597,7 @@ func createTestStore(t *testing.T) *BadgerStore {
 		SyncWrites: false, // Faster for tests
 	}
 
-	store, err := NewBadgerStore(config)
+	store, err := New(config)
 	if err != nil {
 		t.Fatal(err)
 	}

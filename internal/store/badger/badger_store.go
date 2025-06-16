@@ -1,4 +1,4 @@
-package store
+package badger
 
 import (
 	"fmt"
@@ -6,52 +6,11 @@ import (
 	"github.com/dgraph-io/badger/v4"
 )
 
-// BadgerConfig holds the configuration options for BadgerDB
-type BadgerConfig struct {
-	StoreConfig        // Embedded struct with common config
-	Path        string // BadgerDB-specific: database path
-	SyncWrites  bool   // BadgerDB-specific: sync writes to disk
-}
-
-// DefaultBadgerConfig returns a BadgerConfig with sensible defaults
-func DefaultBadgerConfig(path string) *BadgerConfig {
-	return &BadgerConfig{
-		StoreConfig: StoreConfig{
-			LoggingLevel:      3, // ERROR level
-			NumVersionsToKeep: 1,
-		},
-		Path:       path,
-		SyncWrites: true,
-	}
-}
-
-// ToBadgerOptions converts BadgerConfig to badger.Options
-func (c *BadgerConfig) ToBadgerOptions() badger.Options {
-	opts := badger.DefaultOptions(c.Path).
-		WithSyncWrites(c.SyncWrites).
-		WithNumVersionsToKeep(c.NumVersionsToKeep)
-
-	switch c.LoggingLevel {
-	case 0:
-		opts = opts.WithLoggingLevel(badger.DEBUG)
-	case 1:
-		opts = opts.WithLoggingLevel(badger.INFO)
-	case 2:
-		opts = opts.WithLoggingLevel(badger.WARNING)
-	case 3:
-		opts = opts.WithLoggingLevel(badger.ERROR)
-	default:
-		opts = opts.WithLoggingLevel(badger.ERROR)
-	}
-
-	return opts
-}
-
 type BadgerStore struct {
 	db *badger.DB
 }
 
-func NewBadgerStore(config *BadgerConfig) (*BadgerStore, error) {
+func New(config *BadgerStoreConfig) (*BadgerStore, error) {
 	if config == nil {
 		return nil, fmt.Errorf("config cannot be nil")
 	}
@@ -66,8 +25,8 @@ func NewBadgerStore(config *BadgerConfig) (*BadgerStore, error) {
 	return &BadgerStore{db: db}, nil
 }
 
-func NewBadgerStoreWithPath(path string) (*BadgerStore, error) {
-	return NewBadgerStore(DefaultBadgerConfig(path))
+func NewWithPath(path string) (*BadgerStore, error) {
+	return New(DefaultConfig(path))
 }
 
 // Close the BadgerDB instance

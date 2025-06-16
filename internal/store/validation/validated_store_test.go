@@ -1,16 +1,20 @@
-package store
+package validation
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
+
+	"github.com/William-Fernandes252/clavis/internal/store"
+	"github.com/William-Fernandes252/clavis/internal/store/badger"
 )
 
 func TestValidatedStore(t *testing.T) {
 	baseStore := createTestStore(t)
 	defer baseStore.Close()
 
-	store := NewDefaultValidatedStore(baseStore)
+	store := NewWithDefaultValidators(baseStore)
 	defer store.Close()
 
 	t.Run("AcceptValidData", func(t *testing.T) {
@@ -44,7 +48,7 @@ func TestValidatedStore(t *testing.T) {
 	})
 }
 
-func TestFunctionalValidation_CustomValidators(t *testing.T) {
+func TestValidatedStore_CustomValidators(t *testing.T) {
 	baseStore := createTestStore(t)
 	defer baseStore.Close()
 
@@ -70,7 +74,7 @@ func TestFunctionalValidation_CustomValidators(t *testing.T) {
 		},
 	)
 
-	store := NewValidatedStore(baseStore, keyValidator, valueValidator)
+	store := New(baseStore, keyValidator, valueValidator)
 	defer store.Close()
 
 	t.Run("AcceptValidFormat", func(t *testing.T) {
@@ -95,7 +99,7 @@ func TestFunctionalValidation_CustomValidators(t *testing.T) {
 	})
 }
 
-func TestFunctionalValidation_Composition(t *testing.T) {
+func TestValidatedStore_Composition(t *testing.T) {
 	baseStore := createTestStore(t)
 	defer baseStore.Close()
 
@@ -128,7 +132,7 @@ func TestFunctionalValidation_Composition(t *testing.T) {
 		},
 	)
 
-	store := NewValidatedStore(baseStore, keyValidator, valueValidator)
+	store := New(baseStore, keyValidator, valueValidator)
 	defer store.Close()
 
 	t.Run("AllValidatorsPass", func(t *testing.T) {
@@ -175,7 +179,7 @@ func TestFunctionalValidation_Composition(t *testing.T) {
 	})
 }
 
-func TestFunctionalValidation_DomainSpecific(t *testing.T) {
+func TestValidatedStore_DomainSpecific(t *testing.T) {
 	baseStore := createTestStore(t)
 	defer baseStore.Close()
 
@@ -212,7 +216,7 @@ func TestFunctionalValidation_DomainSpecific(t *testing.T) {
 		},
 	)
 
-	userStore := NewValidatedStore(baseStore, userKeyValidator, userValueValidator)
+	userStore := New(baseStore, userKeyValidator, userValueValidator)
 	defer userStore.Close()
 
 	t.Run("ValidUser", func(t *testing.T) {
@@ -244,7 +248,7 @@ func TestFunctionalValidation_DomainSpecific(t *testing.T) {
 	})
 }
 
-func TestFunctionalValidation_ErrorMessages(t *testing.T) {
+func TestValidatedStore_ErrorMessages(t *testing.T) {
 	baseStore := createTestStore(t)
 	defer baseStore.Close()
 
@@ -266,7 +270,7 @@ func TestFunctionalValidation_ErrorMessages(t *testing.T) {
 		return nil
 	}
 
-	store := NewValidatedStore(baseStore, keyValidator, valueValidator)
+	store := New(baseStore, keyValidator, valueValidator)
 	defer store.Close()
 
 	t.Run("EmptyKeyError", func(t *testing.T) {
@@ -300,9 +304,6 @@ func TestFunctionalValidation_ErrorMessages(t *testing.T) {
 
 // Benchmark to ensure validation doesn't add significant overhead
 func BenchmarkValidatedStore(b *testing.B) {
-	baseStore := createTestStore(&testing.T{})
-	defer baseStore.Close()
-
 	// Simple validation
 	keyValidator := ComposeKeyValidators(
 		ValidateNonEmptyKey,
@@ -313,7 +314,7 @@ func BenchmarkValidatedStore(b *testing.B) {
 		ValidateValueSize(1024),
 	)
 
-	validatedStore := NewValidatedStore(baseStore, keyValidator, valueValidator)
+	validatedStore := createTestStoreWithKeyAndValueValidators(b, keyValidator, valueValidator)
 	defer validatedStore.Close()
 
 	key := "benchmark-key"
@@ -326,4 +327,44 @@ func BenchmarkValidatedStore(b *testing.B) {
 			b.Fatal(err)
 		}
 	}
+}
+
+func createTestStoreWithKeyAndValueValidators(t testing.TB, keyValidator func(string) error, valueValidator func(string, []byte) error) *ValidatedStore {
+	baseStore := createTestStore(t)
+	defer baseStore.Close()
+
+	store := New(baseStore, keyValidator, valueValidator)
+	if store == nil {
+		t.Fatal("Failed to create validated store")
+	}
+
+	return store
+}
+
+func createTestStore(t testing.TB) *ValidatedStore {
+	tempDir, err := os.MkdirTemp("", "badger-test-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Clean up will be handled by individual tests
+	t.Cleanup(func() {
+		os.RemoveAll(tempDir)
+	})
+
+	config := &badger.BadgerStoreConfig{
+		StoreConfig: store.StoreConfig{
+			LoggingLevel:      3, // ERROR level for quiet tests
+			NumVersionsToKeep: 1,
+		},
+		Path:       tempDir,
+		SyncWrites: false, // Faster for tests
+	}
+
+	store, err := badger.New(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return NewWithDefaultValidators(store)
 }
