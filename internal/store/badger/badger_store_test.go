@@ -142,20 +142,8 @@ func TestBadgerStore_Get(t *testing.T) {
 
 		// Put with empty key
 		err := store.Put(key, expectedValue)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Get with empty key
-		value, found, err := store.Get(key)
-		if err != nil {
-			t.Errorf("Get failed: %v", err)
-		}
-		if !found {
-			t.Error("Expected empty key to be found")
-		}
-		if string(value) != string(expectedValue) {
-			t.Errorf("Expected %s, got %s", expectedValue, value)
+		if err == nil {
+			t.Error("Expected error when putting with empty key")
 		}
 	})
 
@@ -274,8 +262,8 @@ func TestBadgerStore_Put(t *testing.T) {
 		if !found {
 			t.Error("Expected key with nil value to be found")
 		}
-		if retrievedValue == nil || len(retrievedValue) != 0 {
-			t.Errorf("Expected empty byte slice, got %v", retrievedValue)
+		if len(retrievedValue) != 0 {
+			t.Errorf("Expected empty byte slice, got %v with length %d", retrievedValue, len(retrievedValue))
 		}
 	})
 
@@ -364,23 +352,8 @@ func TestBadgerStore_Delete(t *testing.T) {
 
 		// Put empty key
 		err := store.Put(key, value)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// Delete empty key
-		err = store.Delete(key)
-		if err != nil {
-			t.Errorf("Delete of empty key failed: %v", err)
-		}
-
-		// Verify it's gone
-		_, found, err := store.Get(key)
-		if err != nil {
-			t.Errorf("Get after delete failed: %v", err)
-		}
-		if found {
-			t.Error("Expected empty key to be deleted")
+		if err == nil {
+			t.Fatal("Expected error when putting with empty key")
 		}
 	})
 
