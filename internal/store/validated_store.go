@@ -2,6 +2,8 @@ package store
 
 import "fmt"
 
+const ValueMaxSize = 100 * 1024 * 1024 // 100MB
+
 // Store wrapper to provide data validation functionality
 type ValidatedStore struct {
 	inner          Store
@@ -75,7 +77,7 @@ func NewDefaultValidatedStore(s Store) *ValidatedStore {
 	)
 
 	valueValidator := ComposeValueValidators(
-		ValidateValueSize(100 * 1024 * 1024), // 100MB
+		ValidateValueSize(ValueMaxSize), // 100MB
 	)
 
 	return NewValidatedStore(s, keyValidator, valueValidator)
