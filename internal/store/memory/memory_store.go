@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+
+	"github.com/William-Fernandes252/clavis/internal/store"
 )
 
 // In-memory store that uses a map to manage key-value pairs.
@@ -118,3 +120,5 @@ func (ms *MemoryStore) Scan(prefix string) (map[string][]byte, error) {
 
 	return result, nil
 }
+
+var _ store.Store = (*MemoryStore)(nil)

@@ -3,6 +3,7 @@ package badger
 import (
 	"fmt"
 
+	"github.com/William-Fernandes252/clavis/internal/store"
 	"github.com/dgraph-io/badger/v4"
 )
 
@@ -115,3 +116,5 @@ func hasPrefix(key, prefix []byte) bool {
 	}
 	return true
 }
+
+var _ store.Store = (*BadgerStore)(nil)
