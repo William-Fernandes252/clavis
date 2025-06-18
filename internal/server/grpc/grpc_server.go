@@ -6,12 +6,15 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/William-Fernandes252/clavis/api/proto"
 	"github.com/William-Fernandes252/clavis/internal/server"
 	"github.com/William-Fernandes252/clavis/internal/store"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // GRPCServerConfig defines the configuration for the gRPC server.
@@ -44,7 +47,7 @@ func New(store store.Store, config *GRPCServerConfig, server *grpc.Server) (*GRP
 func (s *GRPCServer) Get(ctx context.Context, req *proto.GetRequest) (*proto.GetResponse, error) {
 	value, found, err := s.store.Get(req.Key)
 	if err != nil {
-		return nil, err
+		return nil, convertError(err)
 	}
 	return &proto.GetResponse{Value: value, Found: found}, nil
 }
@@ -52,7 +55,7 @@ func (s *GRPCServer) Get(ctx context.Context, req *proto.GetRequest) (*proto.Get
 // Put stores the value associated with the key in the store.
 func (s *GRPCServer) Put(ctx context.Context, req *proto.PutRequest) (*proto.PutResponse, error) {
 	if err := s.store.Put(req.Key, req.Value); err != nil {
-		return nil, err
+		return nil, convertError(err)
 	}
 	return &proto.PutResponse{}, nil
 }
@@ -60,7 +63,7 @@ func (s *GRPCServer) Put(ctx context.Context, req *proto.PutRequest) (*proto.Put
 // Delete removes the key-value pair associated with the key from the store.
 func (s *GRPCServer) Delete(ctx context.Context, req *proto.DeleteRequest) (*proto.DeleteResponse, error) {
 	if err := s.store.Delete(req.Key); err != nil {
-		return nil, err
+		return nil, convertError(err)
 	}
 	return &proto.DeleteResponse{}, nil
 }
@@ -116,6 +119,30 @@ func (s *GRPCServer) Shutdown() {
 // GetStore returns the store associated with the gRPC server.
 func (s *GRPCServer) GetStore() (store.Store, error) {
 	return s.store, nil
+}
+
+// convertError converts Go errors to gRPC status errors
+func convertError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	errMsg := err.Error()
+
+	// Convert validation errors to InvalidArgument
+	if strings.Contains(errMsg, "key cannot be empty") ||
+		strings.Contains(errMsg, "key too long") ||
+		strings.Contains(errMsg, "value too large") {
+		return status.Error(codes.InvalidArgument, errMsg)
+	}
+
+	// Convert other known errors
+	if strings.Contains(errMsg, "not found") {
+		return status.Error(codes.NotFound, errMsg)
+	}
+
+	// Default to Unknown for unrecognized errors
+	return status.Error(codes.Unknown, errMsg)
 }
 
 var _ server.Server = (*GRPCServer)(nil)
