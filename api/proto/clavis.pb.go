@@ -4,7 +4,7 @@
 // 	protoc        v6.31.1
 // source: api/proto/clavis.proto
 
-package clavis
+package proto
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
