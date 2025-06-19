@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/William-Fernandes252/clavis/internal/store"
+	"github.com/William-Fernandes252/clavis/internal/store/badger"
 )
 
 // Function that works with any store config that embeds StoreConfig
@@ -21,7 +22,7 @@ func validateCommonConfig(config *store.StoreConfig) error {
 
 func store_config_embedding_example() {
 	// Creating BadgerConfig with embedded StoreConfig fields
-	config := &store.BadgerConfig{
+	config := &badger.BadgerStoreConfig{
 		StoreConfig: store.StoreConfig{
 			LoggingLevel:      2, // WARNING
 			NumVersionsToKeep: 5,

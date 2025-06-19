@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/William-Fernandes252/clavis/internal/store"
+	"github.com/William-Fernandes252/clavis/internal/store/badger"
 )
 
 func dependency_injection_example() {
@@ -18,7 +19,7 @@ func dependency_injection_example() {
 
 	// Example 1: Using default configuration (backward compatibility)
 	fmt.Println("=== Example 1: Default Configuration ===")
-	defaultStore, err := store.NewBadgerStoreWithPath(tempDir + "/default")
+	defaultStore, err := badger.NewWithPath(tempDir + "/default")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -27,7 +28,7 @@ func dependency_injection_example() {
 
 	// Example 2: Custom configuration with dependency injection
 	fmt.Println("\n=== Example 2: Custom Configuration ===")
-	customConfig := &store.BadgerConfig{
+	customConfig := &badger.BadgerStoreConfig{
 		Path:       tempDir + "/custom",
 		SyncWrites: false, // Better performance for non-critical data
 		StoreConfig: store.StoreConfig{
@@ -36,7 +37,7 @@ func dependency_injection_example() {
 		},
 	}
 
-	customStore, err := store.NewBadgerStore(customConfig)
+	customStore, err := badger.New(customConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,7 +50,7 @@ func dependency_injection_example() {
 
 	// Example 3: Production configuration
 	fmt.Println("\n=== Example 3: Production Configuration ===")
-	prodConfig := &store.BadgerConfig{
+	prodConfig := &badger.BadgerStoreConfig{
 		StoreConfig: store.StoreConfig{
 			LoggingLevel:      3, // ERROR level only
 			NumVersionsToKeep: 1, // Minimal memory usage
@@ -58,7 +59,7 @@ func dependency_injection_example() {
 		SyncWrites: true, // Ensure durability
 	}
 
-	prodStore, err := store.NewBadgerStore(prodConfig)
+	prodStore, err := badger.New(prodConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
