@@ -14,6 +14,12 @@ linters:
     - unused
     - gosec
     - ineffassign
+  exclusions:
+    rules:
+      - linters:
+          - gosec
+        path: test/integration
+        text: 'Binds to all network interfaces'
 
 formatters:
   enable:
