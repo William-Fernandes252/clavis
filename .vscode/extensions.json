@@ -1,0 +1,8 @@
+{
+	"recommendations": [
+		"golang.go",
+		"github.vscode-github-actions",
+		"hverlin.mise-vscode",
+		"esbenp.prettier-vscode"
+	]
+}
