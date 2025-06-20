@@ -42,7 +42,9 @@ func NewTestServer(t testing.TB) *TestServer {
 	// Create BadgerDB store
 	badgerStore, err := badger.NewWithPath(filepath.Join(tempDir, "data"))
 	if err != nil {
-		os.RemoveAll(tempDir)
+		if removeErr := os.RemoveAll(tempDir); removeErr != nil {
+			t.Logf("Failed to remove temp directory: %v", removeErr)
+		}
 		t.Fatalf("Failed to create BadgerDB store: %v", err)
 	}
 
@@ -58,8 +60,12 @@ func NewTestServer(t testing.TB) *TestServer {
 	// Find available port
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
-		badgerStore.Close()
-		os.RemoveAll(tempDir)
+		if closeErr := badgerStore.Close(); closeErr != nil {
+			t.Logf("Failed to close badger store: %v", closeErr)
+		}
+		if removeErr := os.RemoveAll(tempDir); removeErr != nil {
+			t.Logf("Failed to remove temp directory: %v", removeErr)
+		}
 		t.Fatalf("Failed to create listener: %v", err)
 	}
 
@@ -69,9 +75,15 @@ func NewTestServer(t testing.TB) *TestServer {
 	// Create clavis gRPC server
 	server, err := grpcserver.New(validatedStore, config, grpcServer)
 	if err != nil {
-		listener.Close()
-		badgerStore.Close()
-		os.RemoveAll(tempDir)
+		if closeErr := listener.Close(); closeErr != nil {
+			t.Logf("Failed to close listener: %v", closeErr)
+		}
+		if closeErr := badgerStore.Close(); closeErr != nil {
+			t.Logf("Failed to close badger store: %v", closeErr)
+		}
+		if removeErr := os.RemoveAll(tempDir); removeErr != nil {
+			t.Logf("Failed to remove temp directory: %v", removeErr)
+		}
 		t.Fatalf("Failed to create gRPC server: %v", err)
 	}
 
@@ -113,7 +125,10 @@ func (ts *TestServer) Stop() {
 		ts.grpcServer.GracefulStop()
 	}
 	if ts.listener != nil {
-		ts.listener.Close()
+		if err := ts.listener.Close(); err != nil {
+			// In tests, we can be less strict about logging close errors
+			_ = err
+		}
 	}
 
 	// Wait for server to stop
@@ -121,13 +136,17 @@ func (ts *TestServer) Stop() {
 
 	// Close store properly and wait for it to flush
 	if store, err := ts.server.GetStore(); err == nil && store != nil {
-		store.Close()
+		if closeErr := store.Close(); closeErr != nil {
+			// In tests, log but don't fail
+			_ = closeErr
+		}
 		// Give BadgerDB time to properly close and sync
 		time.Sleep(200 * time.Millisecond)
 	}
 	if ts.tempDir != "" {
 		// Don't remove temp directory yet - persistence test needs it
 		// os.RemoveAll(ts.tempDir)
+		_ = ts.tempDir // explicitly acknowledge we're not removing the directory
 	}
 }
 
@@ -158,7 +177,11 @@ func TestGRPCServer_Integration_BasicOperations(t *testing.T) {
 
 	// Create client
 	client, conn := testServer.NewClient(t)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -233,7 +256,11 @@ func TestGRPCServer_Integration_ValidationErrors(t *testing.T) {
 
 	// Create client
 	client, conn := testServer.NewClient(t)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -300,10 +327,18 @@ func TestGRPCServer_Integration_MultipleClients(t *testing.T) {
 
 	// Create multiple clients
 	client1, conn1 := testServer.NewClient(t)
-	defer conn1.Close()
+	defer func() {
+		if err := conn1.Close(); err != nil {
+			t.Logf("Failed to close conn1: %v", err)
+		}
+	}()
 
 	client2, conn2 := testServer.NewClient(t)
-	defer conn2.Close()
+	defer func() {
+		if err := conn2.Close(); err != nil {
+			t.Logf("Failed to close conn2: %v", err)
+		}
+	}()
 
 	// Test concurrent operations
 	t.Run("ConcurrentPuts", func(t *testing.T) {
@@ -391,7 +426,11 @@ func TestGRPCServer_Integration_LargeData(t *testing.T) {
 
 	// Create client
 	client, conn := testServer.NewClient(t)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -465,7 +504,11 @@ func TestGRPCServer_Integration_ErrorHandling(t *testing.T) {
 
 	// Create client
 	client, conn := testServer.NewClient(t)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -529,7 +572,9 @@ func TestGRPCServer_Integration_Persistence(t *testing.T) {
 		}
 
 		cancel()
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close connection: %v", err)
+		}
 
 		// Ensure data is flushed to disk before stopping server
 		time.Sleep(200 * time.Millisecond)
@@ -546,8 +591,16 @@ func TestGRPCServer_Integration_Persistence(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to reopen BadgerDB store: %v", err)
 		}
-		defer badgerStore.Close()
-		defer os.RemoveAll(tempDir) // Clean up at the end
+		defer func() {
+			if err := badgerStore.Close(); err != nil {
+				t.Logf("Failed to close badger store: %v", err)
+			}
+		}()
+		defer func() {
+			if err := os.RemoveAll(tempDir); err != nil {
+				t.Logf("Failed to remove temp directory: %v", err)
+			}
+		}() // Clean up at the end
 
 		// Wrap with validation
 		validatedStore := validation.NewWithDefaultValidators(badgerStore)
@@ -561,7 +614,11 @@ func TestGRPCServer_Integration_Persistence(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create listener: %v", err)
 		}
-		defer listener.Close()
+		defer func() {
+			if err := listener.Close(); err != nil {
+				t.Logf("Failed to close listener: %v", err)
+			}
+		}()
 
 		config := &grpcserver.GRPCServerConfig{Port: listener.Addr().String()}
 		server, err := grpcserver.New(validatedStore, config, grpcServer)
@@ -574,7 +631,9 @@ func TestGRPCServer_Integration_Persistence(t *testing.T) {
 		done := make(chan struct{})
 		go func() {
 			defer close(done)
-			grpcServer.Serve(listener)
+			if err := grpcServer.Serve(listener); err != nil {
+				t.Logf("Server serve error: %v", err)
+			}
 		}()
 		defer func() {
 			grpcServer.GracefulStop()
@@ -594,7 +653,11 @@ func TestGRPCServer_Integration_Persistence(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to connect to server: %v", err)
 		}
-		defer conn.Close()
+		defer func() {
+			if err := conn.Close(); err != nil {
+				t.Logf("Failed to close connection: %v", err)
+			}
+		}()
 
 		client := proto.NewClavisClient(conn)
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

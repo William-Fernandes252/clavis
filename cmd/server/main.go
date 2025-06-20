@@ -19,7 +19,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize storage: %v", err)
 	}
-	defer kvStore.Close()
+	defer func() {
+		if err := kvStore.Close(); err != nil {
+			log.Printf("Failed to close storage: %v", err)
+		}
+	}()
 
 	// Create the gRPC server
 	grpcServer := grpc.NewServer()
@@ -29,7 +33,9 @@ func main() {
 		log.Fatalf("Failed to create gRPC server: %v", err)
 	}
 
-	server.Start(func() {
+	if err := server.Start(func() {
 		log.Printf("Server is running on %s", port)
-	})
+	}); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }

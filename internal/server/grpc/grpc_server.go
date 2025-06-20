@@ -77,7 +77,11 @@ func (s *GRPCServer) Start(callbacks ...func()) error {
 	if err != nil {
 		return err
 	}
-	defer listener.Close()
+	defer func() {
+		if err := listener.Close(); err != nil {
+			log.Printf("Failed to close listener: %v", err)
+		}
+	}()
 
 	s.register()
 

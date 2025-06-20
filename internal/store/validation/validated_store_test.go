@@ -12,10 +12,18 @@ import (
 
 func TestValidatedStore(t *testing.T) {
 	baseStore := createTestStore(t)
-	defer baseStore.Close()
+	defer func() {
+		if err := baseStore.Close(); err != nil {
+			t.Logf("Failed to close base store: %v", err)
+		}
+	}()
 
 	store := NewWithDefaultValidators(baseStore)
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			t.Logf("Failed to close validated store: %v", err)
+		}
+	}()
 
 	t.Run("AcceptValidData", func(t *testing.T) {
 		err := store.Put("valid-key", []byte("valid-value"))
@@ -50,7 +58,11 @@ func TestValidatedStore(t *testing.T) {
 
 func TestValidatedStore_CustomValidators(t *testing.T) {
 	baseStore := createTestStore(t)
-	defer baseStore.Close()
+	defer func() {
+		if err := baseStore.Close(); err != nil {
+			t.Logf("Failed to close base store: %v", err)
+		}
+	}()
 
 	// Custom key validator that only allows keys starting with "test:"
 	keyValidator := ComposeKeyValidators(
@@ -75,7 +87,11 @@ func TestValidatedStore_CustomValidators(t *testing.T) {
 	)
 
 	store := New(baseStore, keyValidator, valueValidator)
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			t.Logf("Failed to close store: %v", err)
+		}
+	}()
 
 	t.Run("AcceptValidFormat", func(t *testing.T) {
 		err := store.Put("test:data", []byte(`{"key": "value"}`))
@@ -101,7 +117,11 @@ func TestValidatedStore_CustomValidators(t *testing.T) {
 
 func TestValidatedStore_Composition(t *testing.T) {
 	baseStore := createTestStore(t)
-	defer baseStore.Close()
+	defer func() {
+		if err := baseStore.Close(); err != nil {
+			t.Logf("Failed to close base store: %v", err)
+		}
+	}()
 
 	// Compose multiple key validators
 	keyValidator := ComposeKeyValidators(
@@ -133,7 +153,11 @@ func TestValidatedStore_Composition(t *testing.T) {
 	)
 
 	store := New(baseStore, keyValidator, valueValidator)
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			t.Logf("Failed to close store: %v", err)
+		}
+	}()
 
 	t.Run("AllValidatorsPass", func(t *testing.T) {
 		err := store.Put("valid:key", []byte("valid value"))
@@ -181,7 +205,11 @@ func TestValidatedStore_Composition(t *testing.T) {
 
 func TestValidatedStore_DomainSpecific(t *testing.T) {
 	baseStore := createTestStore(t)
-	defer baseStore.Close()
+	defer func() {
+		if err := baseStore.Close(); err != nil {
+			t.Logf("Failed to close base store: %v", err)
+		}
+	}()
 
 	// Create a user management store with domain-specific validation
 	userKeyValidator := ComposeKeyValidators(
@@ -217,7 +245,11 @@ func TestValidatedStore_DomainSpecific(t *testing.T) {
 	)
 
 	userStore := New(baseStore, userKeyValidator, userValueValidator)
-	defer userStore.Close()
+	defer func() {
+		if err := userStore.Close(); err != nil {
+			t.Logf("Failed to close user store: %v", err)
+		}
+	}()
 
 	t.Run("ValidUser", func(t *testing.T) {
 		err := userStore.Put("user:john123", []byte(`{"name": "John", "email": "john@example.com"}`))
@@ -250,7 +282,11 @@ func TestValidatedStore_DomainSpecific(t *testing.T) {
 
 func TestValidatedStore_ErrorMessages(t *testing.T) {
 	baseStore := createTestStore(t)
-	defer baseStore.Close()
+	defer func() {
+		if err := baseStore.Close(); err != nil {
+			t.Logf("Failed to close base store: %v", err)
+		}
+	}()
 
 	// Create validators with specific error messages
 	keyValidator := func(key string) error {
@@ -271,7 +307,11 @@ func TestValidatedStore_ErrorMessages(t *testing.T) {
 	}
 
 	store := New(baseStore, keyValidator, valueValidator)
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			t.Logf("Failed to close store: %v", err)
+		}
+	}()
 
 	t.Run("EmptyKeyError", func(t *testing.T) {
 		err := store.Put("", []byte("value"))
@@ -315,7 +355,11 @@ func BenchmarkValidatedStore(b *testing.B) {
 	)
 
 	validatedStore := createTestStoreWithKeyAndValueValidators(b, keyValidator, valueValidator)
-	defer validatedStore.Close()
+	defer func() {
+		if err := validatedStore.Close(); err != nil {
+			b.Logf("Failed to close validated store: %v", err)
+		}
+	}()
 
 	key := "benchmark-key"
 	value := []byte("benchmark-value")
@@ -331,7 +375,11 @@ func BenchmarkValidatedStore(b *testing.B) {
 
 func createTestStoreWithKeyAndValueValidators(t testing.TB, keyValidator func(string) error, valueValidator func(string, []byte) error) *ValidatedStore {
 	baseStore := createTestStore(t)
-	defer baseStore.Close()
+	defer func() {
+		if err := baseStore.Close(); err != nil {
+			t.Logf("Failed to close base store: %v", err)
+		}
+	}()
 
 	store := New(baseStore, keyValidator, valueValidator)
 	if store == nil {
@@ -349,7 +397,9 @@ func createTestStore(t testing.TB) *ValidatedStore {
 
 	// Clean up will be handled by individual tests
 	t.Cleanup(func() {
-		os.RemoveAll(tempDir)
+		if err := os.RemoveAll(tempDir); err != nil {
+			t.Logf("Failed to remove temp directory: %v", err)
+		}
 	})
 
 	config := &badger.BadgerStoreConfig{

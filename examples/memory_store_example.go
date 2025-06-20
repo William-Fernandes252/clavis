@@ -1,3 +1,5 @@
+//go:build !codeanalysis
+
 package examples
 
 import (
@@ -17,7 +19,11 @@ func RunMemoryStoreExample() {
 	if err != nil {
 		log.Fatalf("Failed to create memory store: %v", err)
 	}
-	defer memStore.Close()
+	defer func() {
+		if err := memStore.Close(); err != nil {
+			log.Printf("Failed to close memory store: %v", err)
+		}
+	}()
 
 	// Create a memory store with custom configuration
 	fmt.Println("\n2. Creating memory store with custom configuration...")
@@ -31,7 +37,11 @@ func RunMemoryStoreExample() {
 	if err != nil {
 		log.Fatalf("Failed to create custom memory store: %v", err)
 	}
-	defer memStoreCustom.Close()
+	defer func() {
+		if err := memStoreCustom.Close(); err != nil {
+			log.Printf("Failed to close custom memory store: %v", err)
+		}
+	}()
 
 	// Use the default store for the examples
 	fmt.Println("\n3. Basic operations with memory store...")
@@ -168,10 +178,12 @@ func RunMemoryStoreExample() {
 	}
 
 	// Close the store
-	tempStore.Close()
+	if err := tempStore.Close(); err != nil {
+		fmt.Printf("  ? Failed to close temp store: %v\n", err)
+	}
 
 	// Try to access after close (should fail)
-	_, found, err = tempStore.Get("temp:data")
+	_, _, err = tempStore.Get("temp:data")
 	if err != nil {
 		fmt.Printf("  ? Confirmed: Cannot access data after close (%v)\n", err)
 	} else {

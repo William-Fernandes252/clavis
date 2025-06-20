@@ -14,7 +14,11 @@ func BenchmarkGRPCServer_Put_SmallValues(b *testing.B) {
 	testServer.Start(b)
 
 	client, conn := testServer.NewClient(b)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			b.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -29,7 +33,11 @@ func BenchmarkGRPCServer_Put_MediumValues(b *testing.B) {
 	testServer.Start(b)
 
 	client, conn := testServer.NewClient(b)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			b.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -44,7 +52,11 @@ func BenchmarkGRPCServer_Put_LargeValues(b *testing.B) {
 	testServer.Start(b)
 
 	client, conn := testServer.NewClient(b)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			b.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -59,7 +71,11 @@ func BenchmarkGRPCServer_Get_SmallValues(b *testing.B) {
 	testServer.Start(b)
 
 	client, conn := testServer.NewClient(b)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			b.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -74,7 +90,11 @@ func BenchmarkGRPCServer_Get_MediumValues(b *testing.B) {
 	testServer.Start(b)
 
 	client, conn := testServer.NewClient(b)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			b.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -89,7 +109,11 @@ func BenchmarkGRPCServer_Get_LargeValues(b *testing.B) {
 	testServer.Start(b)
 
 	client, conn := testServer.NewClient(b)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			b.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -104,7 +128,11 @@ func BenchmarkGRPCServer_Delete_SmallKeys(b *testing.B) {
 	testServer.Start(b)
 
 	client, conn := testServer.NewClient(b)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			b.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -119,7 +147,11 @@ func BenchmarkGRPCServer_Delete_LargeKeys(b *testing.B) {
 	testServer.Start(b)
 
 	client, conn := testServer.NewClient(b)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			b.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -137,7 +169,11 @@ func BenchmarkGRPCServer_Put_Parallel(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		client, conn := testServer.NewClient(b)
-		defer conn.Close()
+		defer func() {
+			if err := conn.Close(); err != nil {
+				b.Logf("Failed to close connection: %v", err)
+			}
+		}()
 
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -162,7 +198,11 @@ func BenchmarkGRPCServer_Get_Parallel(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		client, conn := testServer.NewClient(b)
-		defer conn.Close()
+		defer func() {
+			if err := conn.Close(); err != nil {
+				b.Logf("Failed to close connection: %v", err)
+			}
+		}()
 
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -183,7 +223,11 @@ func BenchmarkGRPCServer_MixedWorkload_ReadHeavy(b *testing.B) {
 	testServer.Start(b)
 
 	client, conn := testServer.NewClient(b)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			b.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -214,7 +258,11 @@ func BenchmarkGRPCServer_MixedWorkload_WriteHeavy(b *testing.B) {
 	testServer.Start(b)
 
 	client, conn := testServer.NewClient(b)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			b.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()

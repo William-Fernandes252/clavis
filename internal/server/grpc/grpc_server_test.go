@@ -821,7 +821,9 @@ func TestGRPCServer_listen(t *testing.T) {
 					return
 				}
 				// Clean up the listener
-				got.Close()
+				if err := got.Close(); err != nil {
+					t.Logf("Failed to close listener: %v", err)
+				}
 			}
 		})
 	}

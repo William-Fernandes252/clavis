@@ -13,7 +13,11 @@ func TestBadgerStore_Configuration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() {
+		if err := os.RemoveAll(tempDir); err != nil {
+			t.Logf("Failed to remove temp directory: %v", err)
+		}
+	}()
 
 	t.Run("DefaultConfiguration", func(t *testing.T) {
 		// Test the backward-compatible constructor
@@ -21,7 +25,11 @@ func TestBadgerStore_Configuration(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer store.Close()
+		defer func() {
+			if err := store.Close(); err != nil {
+				t.Logf("Failed to close store: %v", err)
+			}
+		}()
 
 		// Test basic operations
 		testKey := "test-key"
@@ -59,7 +67,11 @@ func TestBadgerStore_Configuration(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer store.Close()
+		defer func() {
+			if err := store.Close(); err != nil {
+				t.Logf("Failed to close store: %v", err)
+			}
+		}()
 
 		// Test basic operations
 		testKey := "custom-key"
@@ -96,7 +108,11 @@ func TestBadgerStore_Configuration(t *testing.T) {
 
 func TestBadgerStore_Get(t *testing.T) {
 	store := createTestStore(t)
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			t.Logf("Failed to close store: %v", err)
+		}
+	}()
 
 	t.Run("GetExistingKey", func(t *testing.T) {
 		key := "existing-key"
@@ -171,7 +187,11 @@ func TestBadgerStore_Get(t *testing.T) {
 
 func TestBadgerStore_Put(t *testing.T) {
 	store := createTestStore(t)
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			t.Logf("Failed to close store: %v", err)
+		}
+	}()
 
 	t.Run("PutNewKey", func(t *testing.T) {
 		key := "new-key"
@@ -299,7 +319,11 @@ func TestBadgerStore_Put(t *testing.T) {
 
 func TestBadgerStore_Delete(t *testing.T) {
 	store := createTestStore(t)
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			t.Logf("Failed to close store: %v", err)
+		}
+	}()
 
 	t.Run("DeleteExistingKey", func(t *testing.T) {
 		key := "delete-key"
@@ -392,7 +416,11 @@ func TestBadgerStore_Delete(t *testing.T) {
 
 func TestBadgerStore_Scan(t *testing.T) {
 	store := createTestStore(t)
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			t.Logf("Failed to close store: %v", err)
+		}
+	}()
 
 	// Setup test data
 	testData := map[string][]byte{
@@ -558,7 +586,9 @@ func createTestStore(t *testing.T) *BadgerStore {
 
 	// Clean up will be handled by individual tests
 	t.Cleanup(func() {
-		os.RemoveAll(tempDir)
+		if err := os.RemoveAll(tempDir); err != nil {
+			t.Logf("Failed to remove temp directory: %v", err)
+		}
 	})
 
 	config := &BadgerStoreConfig{

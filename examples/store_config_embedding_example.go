@@ -1,9 +1,10 @@
-// Example showing how StoreConfig embedding enables polymorphic configuration
+//go:build !codeanalysis
 
 package examples
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/William-Fernandes252/clavis/internal/store"
 	"github.com/William-Fernandes252/clavis/internal/store/badger"
@@ -38,5 +39,7 @@ func store_config_embedding_example() {
 	fmt.Printf("Sync Writes: %t\n", config.SyncWrites)
 
 	// Could validate using a common interface
-	validateCommonConfig(&config.StoreConfig)
+	if err := validateCommonConfig(&config.StoreConfig); err != nil {
+		log.Printf("Config validation failed: %v", err)
+	}
 }

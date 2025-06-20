@@ -1,3 +1,5 @@
+//go:build !codeanalysis
+
 package examples
 
 import (
@@ -17,7 +19,11 @@ func functional_validation_example() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() {
+		if err := os.RemoveAll(tempDir); err != nil {
+			log.Printf("Failed to remove temp directory: %v", err)
+		}
+	}()
 
 	// Create base BadgerStore
 	config := &badger.BadgerStoreConfig{
@@ -33,12 +39,20 @@ func functional_validation_example() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer baseStore.Close()
+	defer func() {
+		if err := baseStore.Close(); err != nil {
+			log.Printf("Failed to close base store: %v", err)
+		}
+	}()
 
 	// Example 1: Basic validation
 	fmt.Println("=== Example 1: Basic Validation ===")
 	basicStore := validation.NewWithDefaultValidators(baseStore)
-	defer basicStore.Close()
+	defer func() {
+		if err := basicStore.Close(); err != nil {
+			log.Printf("Failed to close basic store: %v", err)
+		}
+	}()
 
 	// This should work
 	err = basicStore.Put("valid-key", []byte("valid-value"))
@@ -74,7 +88,11 @@ func functional_validation_example() {
 	)
 
 	userStore := validation.New(baseStore, userKeyValidator, userValueValidator)
-	defer userStore.Close()
+	defer func() {
+		if err := userStore.Close(); err != nil {
+			log.Printf("Failed to close user store: %v", err)
+		}
+	}()
 
 	// Test user validation
 	testUserValidation(userStore)
@@ -94,7 +112,11 @@ func functional_validation_example() {
 	)
 
 	configStore := validation.New(baseStore, configKeyValidator, configValueValidator)
-	defer configStore.Close()
+	defer func() {
+		if err := configStore.Close(); err != nil {
+			log.Printf("Failed to close config store: %v", err)
+		}
+	}()
 
 	// Test config validation
 	testConfigValidation(configStore)
@@ -279,7 +301,11 @@ func createFreeTenantStore(baseStore store.Store) store.Store {
 func testMultiTenantValidation(tenantStores map[string]store.Store) {
 	// Test premium tenant
 	premiumStore := tenantStores["premium"]
-	defer premiumStore.Close()
+	defer func() {
+		if err := premiumStore.Close(); err != nil {
+			log.Printf("Failed to close premium store: %v", err)
+		}
+	}()
 
 	largeValue := make([]byte, 5*1024*1024) // 5MB
 	err := premiumStore.Put("premium:large-data", largeValue)
@@ -291,7 +317,11 @@ func testMultiTenantValidation(tenantStores map[string]store.Store) {
 
 	// Test free tenant with same data
 	freeStore := tenantStores["free"]
-	defer freeStore.Close()
+	defer func() {
+		if err := freeStore.Close(); err != nil {
+			log.Printf("Failed to close free store: %v", err)
+		}
+	}()
 
 	err = freeStore.Put("premium:large-data", largeValue)
 	if err != nil {

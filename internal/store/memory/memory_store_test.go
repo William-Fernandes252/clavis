@@ -14,7 +14,11 @@ func TestMemoryStore_Configuration(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer store.Close()
+		defer func() {
+			if err := store.Close(); err != nil {
+				t.Logf("Failed to close store: %v", err)
+			}
+		}()
 
 		// Test basic operations
 		testKey := "test-key"
@@ -50,7 +54,11 @@ func TestMemoryStore_Configuration(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer store.Close()
+		defer func() {
+			if err := store.Close(); err != nil {
+				t.Logf("Failed to close store: %v", err)
+			}
+		}()
 
 		// Test basic operations
 		testKey := "custom-key"
@@ -87,7 +95,11 @@ func TestMemoryStore_Configuration(t *testing.T) {
 
 func TestMemoryStore_Get(t *testing.T) {
 	store := createTestStore(t)
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			t.Logf("Failed to close store: %v", err)
+		}
+	}()
 
 	t.Run("GetExistingKey", func(t *testing.T) {
 		key := "existing-key"
@@ -210,7 +222,9 @@ func TestMemoryStore_Get(t *testing.T) {
 		}
 
 		// Close the store
-		tempStore.Close()
+		if err := tempStore.Close(); err != nil {
+			t.Logf("Failed to close temp store: %v", err)
+		}
 
 		// Try to get after close
 		_, found, err := tempStore.Get(key)
@@ -225,7 +239,11 @@ func TestMemoryStore_Get(t *testing.T) {
 
 func TestMemoryStore_Put(t *testing.T) {
 	store := createTestStore(t)
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			t.Logf("Failed to close store: %v", err)
+		}
+	}()
 
 	t.Run("PutBasic", func(t *testing.T) {
 		key := "basic-key"
@@ -371,7 +389,9 @@ func TestMemoryStore_Put(t *testing.T) {
 		value := []byte("test-value")
 
 		// Close the store
-		tempStore.Close()
+		if err := tempStore.Close(); err != nil {
+			t.Logf("Failed to close temp store: %v", err)
+		}
 
 		// Try to put after close
 		err := tempStore.Put(key, value)
@@ -424,7 +444,11 @@ func TestMemoryStore_Put(t *testing.T) {
 
 func TestMemoryStore_Delete(t *testing.T) {
 	store := createTestStore(t)
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			t.Logf("Failed to close store: %v", err)
+		}
+	}()
 
 	t.Run("DeleteExistingKey", func(t *testing.T) {
 		key := "key-to-delete"
@@ -485,7 +509,9 @@ func TestMemoryStore_Delete(t *testing.T) {
 		key := "test-key"
 
 		// Close the store
-		tempStore.Close()
+		if err := tempStore.Close(); err != nil {
+			t.Logf("Failed to close temp store: %v", err)
+		}
 
 		// Try to delete after close
 		err := tempStore.Delete(key)
@@ -524,7 +550,11 @@ func TestMemoryStore_Delete(t *testing.T) {
 
 func TestMemoryStore_Scan(t *testing.T) {
 	store := createTestStore(t)
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			t.Logf("Failed to close store: %v", err)
+		}
+	}()
 
 	// Setup test data
 	testData := map[string][]byte{
@@ -618,7 +648,9 @@ func TestMemoryStore_Scan(t *testing.T) {
 		}
 
 		// Close the store
-		tempStore.Close()
+		if err := tempStore.Close(); err != nil {
+			t.Logf("Failed to close temp store: %v", err)
+		}
 
 		// Try to scan after close
 		_, err = tempStore.Scan("test:")
@@ -657,7 +689,11 @@ func TestMemoryStore_Scan(t *testing.T) {
 
 func TestMemoryStore_Concurrency(t *testing.T) {
 	store := createTestStore(t)
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			t.Logf("Failed to close store: %v", err)
+		}
+	}()
 
 	t.Run("ConcurrentOperations", func(t *testing.T) {
 		// This test verifies that concurrent operations don't cause data races
@@ -730,7 +766,11 @@ func createTestStore(t *testing.T) *MemoryStore {
 // TestMemoryStoreImplementsInterface verifies that MemoryStore implements the Store interface
 func TestMemoryStoreImplementsInterface(t *testing.T) {
 	memStore := createTestStore(t)
-	defer memStore.Close()
+	defer func() {
+		if err := memStore.Close(); err != nil {
+			t.Logf("Failed to close memory store: %v", err)
+		}
+	}()
 
 	// Test that MemoryStore implements Store interface
 	var _ store.Store = memStore

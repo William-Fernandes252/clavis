@@ -230,7 +230,12 @@ func (rh *RetryHelper) RetryWithBackoff(operation func() error, maxRetries int, 
 		}
 
 		if i < maxRetries-1 {
-			delay := baseDelay * time.Duration(1<<uint(i))
+			// Cap the shift to prevent overflow
+			shift := i
+			if shift > 10 { // 2^10 = 1024, reasonable cap
+				shift = 10
+			}
+			delay := baseDelay * time.Duration(1<<shift)
 			time.Sleep(delay)
 		}
 	}

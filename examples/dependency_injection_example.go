@@ -1,3 +1,5 @@
+//go:build !codeanalysis
+
 package examples
 
 import (
@@ -15,7 +17,11 @@ func dependency_injection_example() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() {
+		if err := os.RemoveAll(tempDir); err != nil {
+			log.Printf("Failed to remove temp directory: %v", err)
+		}
+	}()
 
 	// Example 1: Using default configuration (backward compatibility)
 	fmt.Println("=== Example 1: Default Configuration ===")
@@ -23,7 +29,11 @@ func dependency_injection_example() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer defaultStore.Close()
+	defer func() {
+		if err := defaultStore.Close(); err != nil {
+			log.Printf("Failed to close default store: %v", err)
+		}
+	}()
 	fmt.Println("? Created store with default configuration")
 
 	// Example 2: Custom configuration with dependency injection
@@ -41,7 +51,11 @@ func dependency_injection_example() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer customStore.Close()
+	defer func() {
+		if err := customStore.Close(); err != nil {
+			log.Printf("Failed to close custom store: %v", err)
+		}
+	}()
 	fmt.Println("? Created store with custom configuration")
 	fmt.Printf("  - Path: %s\n", customConfig.Path)
 	fmt.Printf("  - LoggingLevel: %d (INFO)\n", customConfig.LoggingLevel)
@@ -63,7 +77,11 @@ func dependency_injection_example() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer prodStore.Close()
+	defer func() {
+		if err := prodStore.Close(); err != nil {
+			log.Printf("Failed to close production store: %v", err)
+		}
+	}()
 	fmt.Println("? Created store with production configuration")
 	fmt.Printf("  - Path: %s\n", prodConfig.Path)
 	fmt.Printf("  - LoggingLevel: %d (ERROR)\n", prodConfig.LoggingLevel)

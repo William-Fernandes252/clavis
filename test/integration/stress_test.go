@@ -25,7 +25,11 @@ func TestGRPCServer_Integration_StressTest(t *testing.T) {
 
 	// Create client
 	client, conn := testServer.NewClient(t)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
@@ -48,7 +52,11 @@ func TestGRPCServer_Integration_EdgeCases(t *testing.T) {
 
 	// Create client
 	client, conn := testServer.NewClient(t)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -239,7 +247,11 @@ func TestGRPCServer_Integration_TimeoutHandling(t *testing.T) {
 
 	// Create client
 	client, conn := testServer.NewClient(t)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	// Test with very short timeout
 	t.Run("ShortTimeout", func(t *testing.T) {
@@ -269,7 +281,6 @@ func TestGRPCServer_Integration_TimeoutHandling(t *testing.T) {
 			Key:   "normal-key",
 			Value: []byte("normal-value"),
 		})
-
 		if err != nil {
 			t.Errorf("Operation failed with reasonable timeout: %v", err)
 		}
@@ -285,7 +296,11 @@ func TestGRPCServer_Integration_DataIntegrity(t *testing.T) {
 
 	// Create client
 	client, conn := testServer.NewClient(t)
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			t.Logf("Failed to close connection: %v", err)
+		}
+	}()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
