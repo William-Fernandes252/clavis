@@ -27,10 +27,10 @@ go.work
 # End of https://www.toptal.com/developers/gitignore/api/go
 
 # Data files
-data/
+/data/
 
 # Executables used during development
-bin/
+/bin/
 
 # Chat history
-.specstory/
+/.specstory/
