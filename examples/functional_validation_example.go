@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/William-Fernandes252/clavis/internal/model/validation/validators"
 	"github.com/William-Fernandes252/clavis/internal/store"
 	"github.com/William-Fernandes252/clavis/internal/store/badger"
 	"github.com/William-Fernandes252/clavis/internal/store/validation"
@@ -74,17 +75,23 @@ func functional_validation_example() {
 	fmt.Println("\n=== Example 2: User Management System ===")
 
 	// Custom validators for user keys
-	userKeyValidator := validation.ComposeKeyValidators(
-		validation.ValidateNonEmptyKey,
-		validation.ValidateKeyLength(50),
-		validateUserKeyFormat,
-		validateUserIdRange,
+	userKeyValidator := validation.NewStoreKeyValidator(
+		validation.NonEmptyKeyValidator(),
+		validation.KeyLengthValidator(50),
+		validators.Custom(func(key string) bool {
+			return validateUserKeyFormat(key) == nil
+		}, "invalid user key format").WithName("user-key-format"),
+		validators.Custom(func(key string) bool {
+			return validateUserIdRange(key) == nil
+		}, "user ID out of range").WithName("user-id-range"),
 	)
 
 	// Custom validators for user data
-	userValueValidator := validation.ComposeValueValidators(
-		validation.ValidateValueSize(10*1024), // 10KB max user data
-		validateUserDataFormat,
+	userValueValidator := validation.NewStoreValueValidator(
+		validation.ValueSizeValidator(10*1024), // 10KB max user data
+		validation.ValueContentValidator(func(value []byte) bool {
+			return validateUserDataFormat("", value) == nil
+		}, "invalid user data format"),
 	)
 
 	userStore := validation.New(baseStore, userKeyValidator, userValueValidator)
@@ -100,15 +107,19 @@ func functional_validation_example() {
 	// Example 3: Configuration system with different rules
 	fmt.Println("\n=== Example 3: Configuration System ===")
 
-	configKeyValidator := validation.ComposeKeyValidators(
-		validation.ValidateNonEmptyKey,
-		validation.ValidateKeyLength(100),
-		validateConfigKeyFormat,
+	configKeyValidator := validation.NewStoreKeyValidator(
+		validation.NonEmptyKeyValidator(),
+		validation.KeyLengthValidator(100),
+		validators.Custom(func(key string) bool {
+			return validateConfigKeyFormat(key) == nil
+		}, "invalid config key format").WithName("config-key-format"),
 	)
 
-	configValueValidator := validation.ComposeValueValidators(
-		validation.ValidateValueSize(1024*1024), // 1MB max config
-		validateJSONFormat,
+	configValueValidator := validation.NewStoreValueValidator(
+		validation.ValueSizeValidator(1024*1024), // 1MB max config
+		validation.ValueContentValidator(func(value []byte) bool {
+			return validateJSONFormat("", value) == nil
+		}, "invalid JSON format"),
 	)
 
 	configStore := validation.New(baseStore, configKeyValidator, configValueValidator)
@@ -253,46 +264,43 @@ func testConfigValidation(configStore store.Store) {
 
 // Multi-tenant validation examples
 func createPremiumTenantStore(baseStore store.Store) store.Store {
-	keyValidator := validation.ComposeKeyValidators(
-		validation.ValidateNonEmptyKey,
-		validation.ValidateKeyLength(200), // Longer keys allowed
+	keyValidator := validation.NewStoreKeyValidator(
+		validation.NonEmptyKeyValidator(),
+		validation.KeyLengthValidator(200), // Longer keys allowed
 	)
 
-	valueValidator := validation.ComposeValueValidators(
-		validation.ValidateValueSize(10 * 1024 * 1024), // 10MB for premium
+	valueValidator := validation.NewStoreValueValidator(
+		validation.ValueSizeValidator(10 * 1024 * 1024), // 10MB for premium
 	)
 
 	return validation.New(baseStore, keyValidator, valueValidator)
 }
 
 func createBasicTenantStore(baseStore store.Store) store.Store {
-	keyValidator := validation.ComposeKeyValidators(
-		validation.ValidateNonEmptyKey,
-		validation.ValidateKeyLength(100), // Medium key length
+	keyValidator := validation.NewStoreKeyValidator(
+		validation.NonEmptyKeyValidator(),
+		validation.KeyLengthValidator(100), // Medium key length
 	)
 
-	valueValidator := validation.ComposeValueValidators(
-		validation.ValidateValueSize(1 * 1024 * 1024), // 1MB for basic
+	valueValidator := validation.NewStoreValueValidator(
+		validation.ValueSizeValidator(1 * 1024 * 1024), // 1MB for basic
 	)
 
 	return validation.New(baseStore, keyValidator, valueValidator)
 }
 
 func createFreeTenantStore(baseStore store.Store) store.Store {
-	keyValidator := validation.ComposeKeyValidators(
-		validation.ValidateNonEmptyKey,
-		validation.ValidateKeyLength(50), // Short keys only
-		func(key string) error {
+	keyValidator := validation.NewStoreKeyValidator(
+		validation.NonEmptyKeyValidator(),
+		validation.KeyLengthValidator(50), // Short keys only
+		validators.Custom(func(key string) bool {
 			// Free tier restrictions
-			if strings.Contains(key, "premium") || strings.Contains(key, "enterprise") {
-				return fmt.Errorf("free tier cannot use premium/enterprise keys")
-			}
-			return nil
-		},
+			return !(strings.Contains(key, "premium") || strings.Contains(key, "enterprise"))
+		}, "free tier cannot use premium/enterprise keys").WithName("free-tier-restriction"),
 	)
 
-	valueValidator := validation.ComposeValueValidators(
-		validation.ValidateValueSize(100 * 1024), // 100KB for free
+	valueValidator := validation.NewStoreValueValidator(
+		validation.ValueSizeValidator(100 * 1024), // 100KB for free
 	)
 
 	return validation.New(baseStore, keyValidator, valueValidator)

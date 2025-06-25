@@ -1,17 +1,17 @@
 package validation
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/William-Fernandes252/clavis/internal/model/validation/validators"
 	"github.com/William-Fernandes252/clavis/internal/store"
 	"github.com/William-Fernandes252/clavis/internal/store/badger"
 )
 
 func TestValidatedStore(t *testing.T) {
-	baseStore := createTestStore(t)
+	baseStore := createTestStoreBase(t)
 	defer func() {
 		if err := baseStore.Close(); err != nil {
 			t.Logf("Failed to close base store: %v", err)
@@ -57,7 +57,7 @@ func TestValidatedStore(t *testing.T) {
 }
 
 func TestValidatedStore_CustomValidators(t *testing.T) {
-	baseStore := createTestStore(t)
+	baseStore := createTestStoreBase(t)
 	defer func() {
 		if err := baseStore.Close(); err != nil {
 			t.Logf("Failed to close base store: %v", err)
@@ -65,25 +65,19 @@ func TestValidatedStore_CustomValidators(t *testing.T) {
 	}()
 
 	// Custom key validator that only allows keys starting with "test:"
-	keyValidator := ComposeKeyValidators(
-		ValidateNonEmptyKey,
-		func(key string) error {
-			if !strings.HasPrefix(key, "test:") {
-				return fmt.Errorf("key must start with 'test:'")
-			}
-			return nil
-		},
+	keyValidator := NewStoreKeyValidator(
+		NonEmptyKeyValidator(),
+		validators.Custom(func(key string) bool {
+			return strings.HasPrefix(key, "test:")
+		}, "key must start with 'test:'").WithName("test-prefix"),
 	)
 
 	// Custom value validator that only allows JSON-like values
-	valueValidator := ComposeValueValidators(
-		func(key string, value []byte) error {
+	valueValidator := NewStoreValueValidator(
+		ValueContentValidator(func(value []byte) bool {
 			str := strings.TrimSpace(string(value))
-			if !strings.HasPrefix(str, "{") || !strings.HasSuffix(str, "}") {
-				return fmt.Errorf("value must be JSON-like")
-			}
-			return nil
-		},
+			return strings.HasPrefix(str, "{") && strings.HasSuffix(str, "}")
+		}, "value must be JSON-like"),
 	)
 
 	store := New(baseStore, keyValidator, valueValidator)
@@ -116,7 +110,7 @@ func TestValidatedStore_CustomValidators(t *testing.T) {
 }
 
 func TestValidatedStore_Composition(t *testing.T) {
-	baseStore := createTestStore(t)
+	baseStore := createTestStoreBase(t)
 	defer func() {
 		if err := baseStore.Close(); err != nil {
 			t.Logf("Failed to close base store: %v", err)
@@ -124,32 +118,23 @@ func TestValidatedStore_Composition(t *testing.T) {
 	}()
 
 	// Compose multiple key validators
-	keyValidator := ComposeKeyValidators(
-		ValidateNonEmptyKey,
-		ValidateKeyLength(20),
-		func(key string) error {
-			if strings.Contains(key, "banned") {
-				return fmt.Errorf("key cannot contain 'banned'")
-			}
-			return nil
-		},
-		func(key string) error {
-			if !strings.Contains(key, ":") {
-				return fmt.Errorf("key must contain ':'")
-			}
-			return nil
-		},
+	keyValidator := NewStoreKeyValidator(
+		NonEmptyKeyValidator(),
+		KeyLengthValidator(20),
+		validators.Custom(func(key string) bool {
+			return !strings.Contains(key, "banned")
+		}, "key cannot contain 'banned'").WithName("no-banned"),
+		validators.Custom(func(key string) bool {
+			return strings.Contains(key, ":")
+		}, "key must contain ':'").WithName("requires-colon"),
 	)
 
 	// Compose multiple value validators
-	valueValidator := ComposeValueValidators(
-		ValidateValueSize(100),
-		func(key string, value []byte) error {
-			if strings.Contains(string(value), "forbidden") {
-				return fmt.Errorf("value cannot contain 'forbidden'")
-			}
-			return nil
-		},
+	valueValidator := NewStoreValueValidator(
+		ValueSizeValidator(100),
+		ValueContentValidator(func(value []byte) bool {
+			return !strings.Contains(string(value), "forbidden")
+		}, "value cannot contain 'forbidden'"),
 	)
 
 	store := New(baseStore, keyValidator, valueValidator)
@@ -204,7 +189,7 @@ func TestValidatedStore_Composition(t *testing.T) {
 }
 
 func TestValidatedStore_DomainSpecific(t *testing.T) {
-	baseStore := createTestStore(t)
+	baseStore := createTestStoreBase(t)
 	defer func() {
 		if err := baseStore.Close(); err != nil {
 			t.Logf("Failed to close base store: %v", err)
@@ -212,36 +197,27 @@ func TestValidatedStore_DomainSpecific(t *testing.T) {
 	}()
 
 	// Create a user management store with domain-specific validation
-	userKeyValidator := ComposeKeyValidators(
-		ValidateNonEmptyKey,
-		func(key string) error {
+	userKeyValidator := NewStoreKeyValidator(
+		NonEmptyKeyValidator(),
+		validators.Custom(func(key string) bool {
 			if !strings.HasPrefix(key, "user:") {
-				return fmt.Errorf("user keys must start with 'user:'")
+				return false
 			}
-
 			parts := strings.Split(key, ":")
 			if len(parts) != 2 {
-				return fmt.Errorf("user key format must be 'user:id'")
+				return false
 			}
-
 			userId := parts[1]
-			if len(userId) < 3 {
-				return fmt.Errorf("user ID must be at least 3 characters")
-			}
-
-			return nil
-		},
+			return len(userId) >= 3
+		}, "invalid user key format").WithName("user-key-format"),
 	)
 
-	userValueValidator := ComposeValueValidators(
-		ValidateValueSize(1024), // 1KB max
-		func(key string, value []byte) error {
+	userValueValidator := NewStoreValueValidator(
+		ValueSizeValidator(1024), // 1KB max
+		ValueContentValidator(func(value []byte) bool {
 			// Simple validation: must contain email field
-			if !strings.Contains(string(value), "email") {
-				return fmt.Errorf("user data must contain email field")
-			}
-			return nil
-		},
+			return strings.Contains(string(value), "email")
+		}, "user data must contain email field"),
 	)
 
 	userStore := New(baseStore, userKeyValidator, userValueValidator)
@@ -281,30 +257,22 @@ func TestValidatedStore_DomainSpecific(t *testing.T) {
 }
 
 func TestValidatedStore_ErrorMessages(t *testing.T) {
-	baseStore := createTestStore(t)
+	baseStore := createTestStoreBase(t)
 	defer func() {
 		if err := baseStore.Close(); err != nil {
 			t.Logf("Failed to close base store: %v", err)
 		}
 	}()
 
-	// Create validators with specific error messages
-	keyValidator := func(key string) error {
-		if key == "" {
-			return fmt.Errorf("EMPTY_KEY: key cannot be empty")
-		}
-		if len(key) > 10 {
-			return fmt.Errorf("KEY_TOO_LONG: maximum 10 characters, got %d", len(key))
-		}
-		return nil
-	}
+	// Create validators with specific error handling
+	keyValidator := NewStoreKeyValidator(
+		NonEmptyKeyValidator(),
+		KeyLengthValidator(10),
+	)
 
-	valueValidator := func(key string, value []byte) error {
-		if len(value) > 50 {
-			return fmt.Errorf("VALUE_TOO_LARGE: maximum 50 bytes, got %d", len(value))
-		}
-		return nil
-	}
+	valueValidator := NewStoreValueValidator(
+		ValueSizeValidator(50),
+	)
 
 	store := New(baseStore, keyValidator, valueValidator)
 	defer func() {
@@ -316,18 +284,18 @@ func TestValidatedStore_ErrorMessages(t *testing.T) {
 	t.Run("EmptyKeyError", func(t *testing.T) {
 		err := store.Put("", []byte("value"))
 		if err == nil {
-			t.Error("Expected error")
-		} else if !strings.Contains(err.Error(), "EMPTY_KEY") {
-			t.Errorf("Expected EMPTY_KEY error, got: %v", err)
+			t.Error("Expected empty key to be rejected")
+		} else if !strings.Contains(err.Error(), "empty") {
+			t.Errorf("Expected error message to mention 'empty', got: %v", err.Error())
 		}
 	})
 
 	t.Run("LongKeyError", func(t *testing.T) {
 		err := store.Put("very-long-key", []byte("value"))
 		if err == nil {
-			t.Error("Expected error")
-		} else if !strings.Contains(err.Error(), "KEY_TOO_LONG") {
-			t.Errorf("Expected KEY_TOO_LONG error, got: %v", err)
+			t.Error("Expected long key to be rejected")
+		} else if !strings.Contains(err.Error(), "characters") {
+			t.Errorf("Expected error message to mention 'characters', got: %v", err.Error())
 		}
 	})
 
@@ -335,9 +303,9 @@ func TestValidatedStore_ErrorMessages(t *testing.T) {
 		largeValue := make([]byte, 100)
 		err := store.Put("key", largeValue)
 		if err == nil {
-			t.Error("Expected error")
-		} else if !strings.Contains(err.Error(), "VALUE_TOO_LARGE") {
-			t.Errorf("Expected VALUE_TOO_LARGE error, got: %v", err)
+			t.Error("Expected large value to be rejected")
+		} else if !strings.Contains(err.Error(), "large") {
+			t.Errorf("Expected error message to mention 'large', got: %v", err.Error())
 		}
 	})
 }
@@ -345,16 +313,23 @@ func TestValidatedStore_ErrorMessages(t *testing.T) {
 // Benchmark to ensure validation doesn't add significant overhead
 func BenchmarkValidatedStore(b *testing.B) {
 	// Simple validation
-	keyValidator := ComposeKeyValidators(
-		ValidateNonEmptyKey,
-		ValidateKeyLength(100),
+	keyValidator := NewStoreKeyValidator(
+		NonEmptyKeyValidator(),
+		KeyLengthValidator(100),
 	)
 
-	valueValidator := ComposeValueValidators(
-		ValidateValueSize(1024),
+	valueValidator := NewStoreValueValidator(
+		ValueSizeValidator(1024),
 	)
 
-	validatedStore := createTestStoreWithKeyAndValueValidators(b, keyValidator, valueValidator)
+	baseStore := createTestStoreBase(b)
+	defer func() {
+		if err := baseStore.Close(); err != nil {
+			b.Logf("Failed to close base store: %v", err)
+		}
+	}()
+
+	validatedStore := New(baseStore, keyValidator, valueValidator)
 	defer func() {
 		if err := validatedStore.Close(); err != nil {
 			b.Logf("Failed to close validated store: %v", err)
@@ -373,23 +348,7 @@ func BenchmarkValidatedStore(b *testing.B) {
 	}
 }
 
-func createTestStoreWithKeyAndValueValidators(t testing.TB, keyValidator func(string) error, valueValidator func(string, []byte) error) *ValidatedStore {
-	baseStore := createTestStore(t)
-	defer func() {
-		if err := baseStore.Close(); err != nil {
-			t.Logf("Failed to close base store: %v", err)
-		}
-	}()
-
-	store := New(baseStore, keyValidator, valueValidator)
-	if store == nil {
-		t.Fatal("Failed to create validated store")
-	}
-
-	return store
-}
-
-func createTestStore(t testing.TB) *ValidatedStore {
+func createTestStore(t testing.TB) store.Store {
 	tempDir, err := os.MkdirTemp("", "badger-test-*")
 	if err != nil {
 		t.Fatal(err)
@@ -411,10 +370,40 @@ func createTestStore(t testing.TB) *ValidatedStore {
 		SyncWrites: false, // Faster for tests
 	}
 
-	store, err := badger.New(config)
+	baseStore, err := badger.New(config)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	return NewWithDefaultValidators(store)
+	return baseStore
+}
+
+func createTestStoreBase(t testing.TB) store.Store {
+	tempDir, err := os.MkdirTemp("", "badger-test-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Clean up will be handled by individual tests
+	t.Cleanup(func() {
+		if err := os.RemoveAll(tempDir); err != nil {
+			t.Logf("Failed to remove temp directory: %v", err)
+		}
+	})
+
+	config := &badger.BadgerStoreConfig{
+		StoreConfig: store.StoreConfig{
+			LoggingLevel:      3, // ERROR level for quiet tests
+			NumVersionsToKeep: 1,
+		},
+		Path:       tempDir,
+		SyncWrites: false, // Faster for tests
+	}
+
+	baseStore, err := badger.New(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return baseStore
 }
