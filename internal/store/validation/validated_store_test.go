@@ -348,36 +348,6 @@ func BenchmarkValidatedStore(b *testing.B) {
 	}
 }
 
-func createTestStore(t testing.TB) store.Store {
-	tempDir, err := os.MkdirTemp("", "badger-test-*")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Clean up will be handled by individual tests
-	t.Cleanup(func() {
-		if err := os.RemoveAll(tempDir); err != nil {
-			t.Logf("Failed to remove temp directory: %v", err)
-		}
-	})
-
-	config := &badger.BadgerStoreConfig{
-		StoreConfig: store.StoreConfig{
-			LoggingLevel:      3, // ERROR level for quiet tests
-			NumVersionsToKeep: 1,
-		},
-		Path:       tempDir,
-		SyncWrites: false, // Faster for tests
-	}
-
-	baseStore, err := badger.New(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return baseStore
-}
-
 func createTestStoreBase(t testing.TB) store.Store {
 	tempDir, err := os.MkdirTemp("", "badger-test-*")
 	if err != nil {
