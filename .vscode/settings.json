@@ -2,20 +2,25 @@
 	"editor.formatOnSave": true,
 	"editor.useTabStops": true,
 	"editor.tabSize": 4,
-
-	"go.lintTool": "golangci-lint",
-	"go.lintFlags": ["--path-mode=abs", "--fast-only"],
+	"go.lintTool": "golangci-lint-v2",
+	"go.toolsGopath": null,
+	"go.lintFlags": [
+		"--path-mode=abs",
+		"--fast-only"
+	],
 	"go.formatTool": "custom",
 	"go.alternateTools": {
-		"customFormatter": "golangci-lint"
+		"customFormatter": "golangci-lint-v2",
 	},
-	"go.formatFlags": ["fmt", "--stdin"],
+	"go.formatFlags": [
+		"fmt",
+		"--stdin"
+	],
 	"go.lintOnSave": "workspace",
-
 	"[yaml]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode",
 		"editor.formatOnSave": true,
 		"editor.tabSize": 2,
 		"editor.insertSpaces": true
-	}
+	},
 }
