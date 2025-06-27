@@ -1008,39 +1008,39 @@ func TestCustom(t *testing.T) {
 func TestStringValidatorComposition(t *testing.T) {
 	tests := []struct {
 		name        string
-		validators  []Validator[string]
+		validators  []StringValidator
 		value       string
 		expectError bool
 		errorCode   string
 	}{
 		{
 			name:        "NotEmpty and MinLength both pass",
-			validators:  []Validator[string]{NotEmpty(), MinLength(3)},
+			validators:  []StringValidator{NotEmpty(), MinLength(3)},
 			value:       "hello",
 			expectError: false,
 		},
 		{
 			name:        "NotEmpty passes, MinLength fails",
-			validators:  []Validator[string]{NotEmpty(), MinLength(10)},
+			validators:  []StringValidator{NotEmpty(), MinLength(10)},
 			value:       "hello",
 			expectError: true,
 			errorCode:   "min-length",
 		},
 		{
 			name:        "Email and MinLength both pass",
-			validators:  []Validator[string]{Email(), MinLength(5)},
+			validators:  []StringValidator{Email(), MinLength(5)},
 			value:       "test@example.com",
 			expectError: false,
 		},
 		{
 			name:        "Alpha and Length both pass",
-			validators:  []Validator[string]{Alpha(), Length(3, 10)},
+			validators:  []StringValidator{Alpha(), Length(3, 10)},
 			value:       "hello",
 			expectError: false,
 		},
 		{
 			name:        "Alpha passes, Length fails",
-			validators:  []Validator[string]{Alpha(), Length(10, 20)},
+			validators:  []StringValidator{Alpha(), Length(10, 20)},
 			value:       "hello",
 			expectError: true,
 			errorCode:   "length-range",
@@ -1080,7 +1080,7 @@ func TestStringValidatorComposition(t *testing.T) {
 func TestStringValidatorWithName(t *testing.T) {
 	tests := []struct {
 		name         string
-		validator    Validator[string]
+		validator    StringValidator
 		customName   string
 		value        string
 		expectError  bool

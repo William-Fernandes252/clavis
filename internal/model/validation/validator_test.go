@@ -1,14 +1,12 @@
-package validators
+package validation
 
 import (
 	"testing"
-
-	"github.com/William-Fernandes252/clavis/internal/model/validation"
 )
 
 func TestNewValidator(t *testing.T) {
 	type args struct {
-		validateFn func(value string, ctx validation.Context) *validation.ValidationError
+		validateFn func(value string, ctx Context) *ValidationError
 	}
 	tests := []struct {
 		name string
@@ -18,18 +16,18 @@ func TestNewValidator(t *testing.T) {
 		{
 			name: "creates validator with validation function",
 			args: args{
-				validateFn: func(value string, ctx validation.Context) *validation.ValidationError {
+				validateFn: func(value string, ctx Context) *ValidationError {
 					if value == "error" {
-						return validation.NewValidationError(ctx.Target, value, "test error")
+						return NewValidationError(ctx.Target, value, "test error")
 					}
 					return nil
 				},
 			},
 			want: Validator[string]{
 				Name: nil,
-				Validate: func(value string, ctx validation.Context) *validation.ValidationError {
+				Validate: func(value string, ctx Context) *ValidationError {
 					if value == "error" {
-						return validation.NewValidationError(ctx.Target, value, "test error")
+						return NewValidationError(ctx.Target, value, "test error")
 					}
 					return nil
 				},
@@ -38,13 +36,13 @@ func TestNewValidator(t *testing.T) {
 		{
 			name: "creates validator that always passes",
 			args: args{
-				validateFn: func(value string, ctx validation.Context) *validation.ValidationError {
+				validateFn: func(value string, ctx Context) *ValidationError {
 					return nil
 				},
 			},
 			want: Validator[string]{
 				Name: nil,
-				Validate: func(value string, ctx validation.Context) *validation.ValidationError {
+				Validate: func(value string, ctx Context) *ValidationError {
 					return nil
 				},
 			},
@@ -64,7 +62,7 @@ func TestNewValidator(t *testing.T) {
 			}
 
 			// Test the function behavior
-			ctx := validation.NewContext("test")
+			ctx := NewContext("test")
 
 			// Test with valid input
 			if err := got.Validate("valid", ctx); err != nil && tt.name == "creates validator that always passes" {
@@ -92,7 +90,7 @@ func TestValidator_WithName(t *testing.T) {
 	tests := []testCase{
 		{
 			name: "adds name to unnamed validator",
-			validator: NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+			validator: NewValidator(func(value string, ctx Context) *ValidationError {
 				return nil
 			}),
 			nameToAdd:    "test_validator",
@@ -100,7 +98,7 @@ func TestValidator_WithName(t *testing.T) {
 		},
 		{
 			name: "overwrites existing name",
-			validator: NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+			validator: NewValidator(func(value string, ctx Context) *ValidationError {
 				return nil
 			}).WithName("old_name"),
 			nameToAdd:    "new_name",
@@ -108,7 +106,7 @@ func TestValidator_WithName(t *testing.T) {
 		},
 		{
 			name: "handles empty name",
-			validator: NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+			validator: NewValidator(func(value string, ctx Context) *ValidationError {
 				return nil
 			}),
 			nameToAdd:    "",
@@ -145,21 +143,21 @@ func TestValidator_GetName(t *testing.T) {
 	}{
 		{
 			name: "returns default name for unnamed validator",
-			validator: NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+			validator: NewValidator(func(value string, ctx Context) *ValidationError {
 				return nil
 			}),
 			want: "unnamed-validator",
 		},
 		{
 			name: "returns custom name",
-			validator: NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+			validator: NewValidator(func(value string, ctx Context) *ValidationError {
 				return nil
 			}).WithName("custom_validator"),
 			want: "custom_validator",
 		},
 		{
 			name: "returns empty name when set to empty",
-			validator: NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+			validator: NewValidator(func(value string, ctx Context) *ValidationError {
 				return nil
 			}).WithName(""),
 			want: "",
@@ -176,10 +174,10 @@ func TestValidator_GetName(t *testing.T) {
 }
 
 func TestNewValidatorChain(t *testing.T) {
-	validator1 := NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+	validator1 := NewValidator(func(value string, ctx Context) *ValidationError {
 		return nil
 	})
-	validator2 := NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+	validator2 := NewValidator(func(value string, ctx Context) *ValidationError {
 		return nil
 	})
 
@@ -242,7 +240,7 @@ func TestValidatorChain_Add(t *testing.T) {
 			// Create initial chain
 			var initialValidators []Validator[string]
 			for i := 0; i < tt.initialCount; i++ {
-				initialValidators = append(initialValidators, NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+				initialValidators = append(initialValidators, NewValidator(func(value string, ctx Context) *ValidationError {
 					return nil
 				}))
 			}
@@ -251,7 +249,7 @@ func TestValidatorChain_Add(t *testing.T) {
 
 			// Add validator if specified
 			if tt.addValidator {
-				newValidator := NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+				newValidator := NewValidator(func(value string, ctx Context) *ValidationError {
 					return nil
 				})
 				result := chain.Add(newValidator)
@@ -272,34 +270,34 @@ func TestValidatorChain_Add(t *testing.T) {
 func TestValidatorChain_Validate(t *testing.T) {
 	tests := []struct {
 		name           string
-		validators     []func(value string, ctx validation.Context) *validation.ValidationError
+		validators     []func(value string, ctx Context) *ValidationError
 		testValue      string
 		expectedErrors int
 	}{
 		{
 			name:           "empty chain returns no errors",
-			validators:     []func(value string, ctx validation.Context) *validation.ValidationError{},
+			validators:     []func(value string, ctx Context) *ValidationError{},
 			testValue:      "any_value",
 			expectedErrors: 0,
 		},
 		{
 			name: "all validators pass",
-			validators: []func(value string, ctx validation.Context) *validation.ValidationError{
-				func(value string, ctx validation.Context) *validation.ValidationError { return nil },
-				func(value string, ctx validation.Context) *validation.ValidationError { return nil },
+			validators: []func(value string, ctx Context) *ValidationError{
+				func(value string, ctx Context) *ValidationError { return nil },
+				func(value string, ctx Context) *ValidationError { return nil },
 			},
 			testValue:      "valid_value",
 			expectedErrors: 0,
 		},
 		{
 			name: "some validators fail",
-			validators: []func(value string, ctx validation.Context) *validation.ValidationError{
-				func(value string, ctx validation.Context) *validation.ValidationError { return nil },
-				func(value string, ctx validation.Context) *validation.ValidationError {
-					return validation.NewValidationError(ctx.Target, value, "error 1")
+			validators: []func(value string, ctx Context) *ValidationError{
+				func(value string, ctx Context) *ValidationError { return nil },
+				func(value string, ctx Context) *ValidationError {
+					return NewValidationError(ctx.Target, value, "error 1")
 				},
-				func(value string, ctx validation.Context) *validation.ValidationError {
-					return validation.NewValidationError(ctx.Target, value, "error 2")
+				func(value string, ctx Context) *ValidationError {
+					return NewValidationError(ctx.Target, value, "error 2")
 				},
 			},
 			testValue:      "invalid_value",
@@ -307,12 +305,12 @@ func TestValidatorChain_Validate(t *testing.T) {
 		},
 		{
 			name: "all validators fail",
-			validators: []func(value string, ctx validation.Context) *validation.ValidationError{
-				func(value string, ctx validation.Context) *validation.ValidationError {
-					return validation.NewValidationError(ctx.Target, value, "error 1")
+			validators: []func(value string, ctx Context) *ValidationError{
+				func(value string, ctx Context) *ValidationError {
+					return NewValidationError(ctx.Target, value, "error 1")
 				},
-				func(value string, ctx validation.Context) *validation.ValidationError {
-					return validation.NewValidationError(ctx.Target, value, "error 2")
+				func(value string, ctx Context) *ValidationError {
+					return NewValidationError(ctx.Target, value, "error 2")
 				},
 			},
 			testValue:      "invalid_value",
@@ -329,7 +327,7 @@ func TestValidatorChain_Validate(t *testing.T) {
 			}
 
 			chain := NewValidatorChain(validators...)
-			ctx := validation.NewContext("test_field")
+			ctx := NewContext("test_field")
 
 			result := chain.Validate(tt.testValue, ctx)
 
@@ -347,25 +345,25 @@ func TestValidatorChain_Validate(t *testing.T) {
 func TestValidatorChain_ValidateFirst(t *testing.T) {
 	tests := []struct {
 		name         string
-		validators   []func(value string, ctx validation.Context) *validation.ValidationError
+		validators   []func(value string, ctx Context) *ValidationError
 		testValue    string
 		expectError  bool
 		errorMessage string
 	}{
 		{
 			name:        "empty chain returns no error",
-			validators:  []func(value string, ctx validation.Context) *validation.ValidationError{},
+			validators:  []func(value string, ctx Context) *ValidationError{},
 			testValue:   "any_value",
 			expectError: false,
 		},
 		{
 			name: "first validator fails",
-			validators: []func(value string, ctx validation.Context) *validation.ValidationError{
-				func(value string, ctx validation.Context) *validation.ValidationError {
-					return validation.NewValidationError(ctx.Target, value, "first error")
+			validators: []func(value string, ctx Context) *ValidationError{
+				func(value string, ctx Context) *ValidationError {
+					return NewValidationError(ctx.Target, value, "first error")
 				},
-				func(value string, ctx validation.Context) *validation.ValidationError {
-					return validation.NewValidationError(ctx.Target, value, "second error")
+				func(value string, ctx Context) *ValidationError {
+					return NewValidationError(ctx.Target, value, "second error")
 				},
 			},
 			testValue:    "invalid_value",
@@ -374,10 +372,10 @@ func TestValidatorChain_ValidateFirst(t *testing.T) {
 		},
 		{
 			name: "second validator fails",
-			validators: []func(value string, ctx validation.Context) *validation.ValidationError{
-				func(value string, ctx validation.Context) *validation.ValidationError { return nil },
-				func(value string, ctx validation.Context) *validation.ValidationError {
-					return validation.NewValidationError(ctx.Target, value, "second error")
+			validators: []func(value string, ctx Context) *ValidationError{
+				func(value string, ctx Context) *ValidationError { return nil },
+				func(value string, ctx Context) *ValidationError {
+					return NewValidationError(ctx.Target, value, "second error")
 				},
 			},
 			testValue:    "invalid_value",
@@ -386,9 +384,9 @@ func TestValidatorChain_ValidateFirst(t *testing.T) {
 		},
 		{
 			name: "all validators pass",
-			validators: []func(value string, ctx validation.Context) *validation.ValidationError{
-				func(value string, ctx validation.Context) *validation.ValidationError { return nil },
-				func(value string, ctx validation.Context) *validation.ValidationError { return nil },
+			validators: []func(value string, ctx Context) *ValidationError{
+				func(value string, ctx Context) *ValidationError { return nil },
+				func(value string, ctx Context) *ValidationError { return nil },
 			},
 			testValue:   "valid_value",
 			expectError: false,
@@ -404,7 +402,7 @@ func TestValidatorChain_ValidateFirst(t *testing.T) {
 			}
 
 			chain := NewValidatorChain(validators...)
-			ctx := validation.NewContext("test_field")
+			ctx := NewContext("test_field")
 
 			result := chain.ValidateFirst(tt.testValue, ctx)
 
@@ -426,16 +424,16 @@ func TestValidatorChain_ValidateFirst(t *testing.T) {
 }
 
 func TestNewConditionalValidator(t *testing.T) {
-	condition := func(value string, ctx validation.Context) bool {
+	condition := func(value string, ctx Context) bool {
 		return value == "trigger"
 	}
-	validator := NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
-		return validation.NewValidationError(ctx.Target, value, "validation error")
+	validator := NewValidator(func(value string, ctx Context) *ValidationError {
+		return NewValidationError(ctx.Target, value, "validation error")
 	})
 
 	tests := []struct {
 		name      string
-		condition func(value string, ctx validation.Context) bool
+		condition func(value string, ctx Context) bool
 		validator Validator[string]
 	}{
 		{
@@ -463,39 +461,39 @@ func TestNewConditionalValidator(t *testing.T) {
 func TestConditionalValidator_Validate(t *testing.T) {
 	tests := []struct {
 		name        string
-		condition   func(value string, ctx validation.Context) bool
-		validator   func(value string, ctx validation.Context) *validation.ValidationError
+		condition   func(value string, ctx Context) bool
+		validator   func(value string, ctx Context) *ValidationError
 		testValue   string
 		expectError bool
 	}{
 		{
 			name: "condition met and validator fails",
-			condition: func(value string, ctx validation.Context) bool {
+			condition: func(value string, ctx Context) bool {
 				return value == "trigger"
 			},
-			validator: func(value string, ctx validation.Context) *validation.ValidationError {
-				return validation.NewValidationError(ctx.Target, value, "validation error")
+			validator: func(value string, ctx Context) *ValidationError {
+				return NewValidationError(ctx.Target, value, "validation error")
 			},
 			testValue:   "trigger",
 			expectError: true,
 		},
 		{
 			name: "condition not met",
-			condition: func(value string, ctx validation.Context) bool {
+			condition: func(value string, ctx Context) bool {
 				return value == "trigger"
 			},
-			validator: func(value string, ctx validation.Context) *validation.ValidationError {
-				return validation.NewValidationError(ctx.Target, value, "validation error")
+			validator: func(value string, ctx Context) *ValidationError {
+				return NewValidationError(ctx.Target, value, "validation error")
 			},
 			testValue:   "not_trigger",
 			expectError: false,
 		},
 		{
 			name: "condition met but validator passes",
-			condition: func(value string, ctx validation.Context) bool {
+			condition: func(value string, ctx Context) bool {
 				return value == "trigger"
 			},
-			validator: func(value string, ctx validation.Context) *validation.ValidationError {
+			validator: func(value string, ctx Context) *ValidationError {
 				return nil
 			},
 			testValue:   "trigger",
@@ -503,11 +501,11 @@ func TestConditionalValidator_Validate(t *testing.T) {
 		},
 		{
 			name: "condition always false",
-			condition: func(value string, ctx validation.Context) bool {
+			condition: func(value string, ctx Context) bool {
 				return false
 			},
-			validator: func(value string, ctx validation.Context) *validation.ValidationError {
-				return validation.NewValidationError(ctx.Target, value, "should not be called")
+			validator: func(value string, ctx Context) *ValidationError {
+				return NewValidationError(ctx.Target, value, "should not be called")
 			},
 			testValue:   "any_value",
 			expectError: false,
@@ -518,7 +516,7 @@ func TestConditionalValidator_Validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			validator := NewValidator(tt.validator)
 			conditional := NewConditionalValidator(tt.condition, validator)
-			ctx := validation.NewContext("test_field")
+			ctx := NewContext("test_field")
 
 			result := conditional.Validate(tt.testValue, ctx)
 
@@ -558,8 +556,8 @@ func TestConditionalValidator_WithName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			condition := func(value string, ctx validation.Context) bool { return true }
-			validator := NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+			condition := func(value string, ctx Context) bool { return true }
+			validator := NewValidator(func(value string, ctx Context) *ValidationError {
 				return nil
 			})
 
@@ -587,31 +585,26 @@ func TestConditionalValidator_WithName(t *testing.T) {
 	}
 }
 
-// Helper function for tests
-func stringPtr(s string) *string {
-	return &s
-}
-
 // Integration tests
 func TestValidatorIntegration(t *testing.T) {
 	t.Run("complex validator chain", func(t *testing.T) {
 		// Create a complex validation scenario
-		minLength := NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+		minLength := NewValidator(func(value string, ctx Context) *ValidationError {
 			if len(value) < 3 {
-				return validation.NewValidationError(ctx.Target, value, "too short")
+				return NewValidationError(ctx.Target, value, "too short")
 			}
 			return nil
 		}).WithName("min-length")
 
-		notEmpty := NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+		notEmpty := NewValidator(func(value string, ctx Context) *ValidationError {
 			if value == "" {
-				return validation.NewValidationError(ctx.Target, value, "cannot be empty")
+				return NewValidationError(ctx.Target, value, "cannot be empty")
 			}
 			return nil
 		}).WithName("not-empty")
 
 		chain := NewValidatorChain(notEmpty, minLength)
-		ctx := validation.NewContext("username")
+		ctx := NewContext("username")
 
 		// Test valid value
 		result := chain.Validate("valid_username", ctx)
@@ -630,14 +623,14 @@ func TestValidatorIntegration(t *testing.T) {
 	})
 
 	t.Run("conditional validator with context metadata", func(t *testing.T) {
-		condition := func(value string, ctx validation.Context) bool {
+		condition := func(value string, ctx Context) bool {
 			required, exists := ctx.Metadata["required"]
 			return exists && required.(bool)
 		}
 
-		validator := NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+		validator := NewValidator(func(value string, ctx Context) *ValidationError {
 			if value == "" {
-				return validation.NewValidationError(ctx.Target, value, "required field cannot be empty")
+				return NewValidationError(ctx.Target, value, "required field cannot be empty")
 			}
 			return nil
 		})
@@ -645,21 +638,21 @@ func TestValidatorIntegration(t *testing.T) {
 		conditional := NewConditionalValidator(condition, validator)
 
 		// Test with required=true
-		ctx := validation.NewContext("field").WithMetadata("required", true)
+		ctx := NewContext("field").WithMetadata("required", true)
 		result := conditional.Validate("", ctx)
 		if result == nil {
 			t.Error("Required field validation should fail for empty value")
 		}
 
 		// Test with required=false
-		ctx = validation.NewContext("field").WithMetadata("required", false)
+		ctx = NewContext("field").WithMetadata("required", false)
 		result = conditional.Validate("", ctx)
 		if result != nil {
 			t.Errorf("Non-required field should pass: %v", result)
 		}
 
 		// Test without required metadata
-		ctx = validation.NewContext("field")
+		ctx = NewContext("field")
 		result = conditional.Validate("", ctx)
 		if result != nil {
 			t.Errorf("Field without required metadata should pass: %v", result)

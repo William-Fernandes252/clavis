@@ -9,9 +9,11 @@ import (
 	"github.com/William-Fernandes252/clavis/internal/model/validation"
 )
 
+type StringValidator = validation.Validator[string]
+
 // NotEmpty validates that a string is not empty
-func NotEmpty() Validator[string] {
-	return NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+func NotEmpty() StringValidator {
+	return validation.NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
 		if strings.TrimSpace(value) == "" {
 			msg := fmt.Sprintf("%s: must not be empty", ctx.Target)
 			err := validation.NewValidationError(
@@ -26,8 +28,8 @@ func NotEmpty() Validator[string] {
 }
 
 // Length validates string length is within the specified range
-func Length(min, max int) Validator[string] {
-	return NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+func Length(min, max int) StringValidator {
+	return validation.NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
 		length := len(value)
 		if length < min || length > max {
 			msg := fmt.Sprintf("%s: must be between %d and %d characters, got %d",
@@ -47,8 +49,8 @@ func Length(min, max int) Validator[string] {
 }
 
 // MinLength validates minimum string length
-func MinLength(min int) Validator[string] {
-	return NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+func MinLength(min int) StringValidator {
+	return validation.NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
 		if len(value) < min {
 			msg := fmt.Sprintf("%s: must be at least %d characters, got %d",
 				ctx.Target, min, len(value))
@@ -66,8 +68,8 @@ func MinLength(min int) Validator[string] {
 }
 
 // MaxLength validates maximum string length
-func MaxLength(max int) Validator[string] {
-	return NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+func MaxLength(max int) StringValidator {
+	return validation.NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
 		if len(value) > max {
 			msg := fmt.Sprintf("%s: must be at most %d characters, got %d",
 				ctx.Target, max, len(value))
@@ -85,9 +87,9 @@ func MaxLength(max int) Validator[string] {
 }
 
 // Pattern validates string against a regular expression
-func Pattern(pattern string) Validator[string] {
+func Pattern(pattern string) StringValidator {
 	regex := regexp.MustCompile(pattern)
-	return NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+	return validation.NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
 		if !regex.MatchString(value) {
 			msg := fmt.Sprintf("%s: does not match required pattern", ctx.Target)
 			err := validation.NewValidationError(
@@ -102,23 +104,23 @@ func Pattern(pattern string) Validator[string] {
 }
 
 // Email validates email format (reuses Pattern logic)
-func Email() Validator[string] {
+func Email() StringValidator {
 	return Pattern(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 }
 
 // URL validates URL format (reuses Pattern logic)
-func URL() Validator[string] {
+func URL() StringValidator {
 	return Pattern(`^https?://[^\s/$.?#].[^\s]*$`)
 }
 
 // OneOf validates that the string is one of the allowed values
-func OneOf(allowed ...string) Validator[string] {
+func OneOf(allowed ...string) StringValidator {
 	allowedSet := make(map[string]bool)
 	for _, val := range allowed {
 		allowedSet[val] = true
 	}
 
-	return NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+	return validation.NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
 		if !allowedSet[value] {
 			msg := fmt.Sprintf("%s: must be one of %s",
 				ctx.Target, strings.Join(allowed, ", "))
@@ -134,8 +136,8 @@ func OneOf(allowed ...string) Validator[string] {
 }
 
 // NoWhitespace validates that the string contains no whitespace
-func NoWhitespace() Validator[string] {
-	return NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+func NoWhitespace() StringValidator {
+	return validation.NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
 		for _, r := range value {
 			if unicode.IsSpace(r) {
 				msg := fmt.Sprintf("%s: cannot contain whitespace", ctx.Target)
@@ -152,8 +154,8 @@ func NoWhitespace() Validator[string] {
 }
 
 // Alpha validates that the string contains only alphabetic characters
-func Alpha() Validator[string] {
-	return NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+func Alpha() StringValidator {
+	return validation.NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
 		for _, r := range value {
 			if !unicode.IsLetter(r) {
 				msg := fmt.Sprintf("%s: must contain only alphabetic characters", ctx.Target)
@@ -170,8 +172,8 @@ func Alpha() Validator[string] {
 }
 
 // Alphanumeric validates that the string contains only alphanumeric characters
-func Alphanumeric() Validator[string] {
-	return NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+func Alphanumeric() StringValidator {
+	return validation.NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
 		for _, r := range value {
 			if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
 				msg := fmt.Sprintf("%s: must contain only alphanumeric characters", ctx.Target)
@@ -188,8 +190,8 @@ func Alphanumeric() Validator[string] {
 }
 
 // Custom allows creating custom string validators
-func Custom(validateFn func(value string) bool, errorMsg string) Validator[string] {
-	return NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
+func Custom(validateFn func(value string) bool, errorMsg string) StringValidator {
+	return validation.NewValidator(func(value string, ctx validation.Context) *validation.ValidationError {
 		if !validateFn(value) {
 			msg := fmt.Sprintf("%s: %s", ctx.Target, errorMsg)
 			err := validation.NewValidationError(

@@ -732,39 +732,39 @@ func TestNumericValidatorWithDifferentTypes(t *testing.T) {
 func TestNumericValidatorComposition(t *testing.T) {
 	tests := []struct {
 		name        string
-		validators  []Validator[int]
+		validators  []validation.Validator[int]
 		value       int
 		expectError bool
 		errorCode   string
 	}{
 		{
 			name:        "Positive and Min both pass",
-			validators:  []Validator[int]{Positive[int](), Min(1)},
+			validators:  []validation.Validator[int]{Positive[int](), Min(1)},
 			value:       5,
 			expectError: false,
 		},
 		{
 			name:        "Positive passes, Min fails",
-			validators:  []Validator[int]{Positive[int](), Min(10)},
+			validators:  []validation.Validator[int]{Positive[int](), Min(10)},
 			value:       5,
 			expectError: true,
 			errorCode:   "min-value",
 		},
 		{
 			name:        "Min and Max both pass",
-			validators:  []Validator[int]{Min(1), Max(10)},
+			validators:  []validation.Validator[int]{Min(1), Max(10)},
 			value:       5,
 			expectError: false,
 		},
 		{
 			name:        "Range and Positive both pass",
-			validators:  []Validator[int]{NumericRange(1, 10), Positive[int]()},
+			validators:  []validation.Validator[int]{NumericRange(1, 10), Positive[int]()},
 			value:       5,
 			expectError: false,
 		},
 		{
 			name:        "NonNegative passes, Max fails",
-			validators:  []Validator[int]{NonNegative[int](), Max(3)},
+			validators:  []validation.Validator[int]{NonNegative[int](), Max(3)},
 			value:       5,
 			expectError: true,
 			errorCode:   "max-value",
@@ -804,7 +804,7 @@ func TestNumericValidatorComposition(t *testing.T) {
 func TestNumericValidatorWithName(t *testing.T) {
 	tests := []struct {
 		name         string
-		validator    Validator[int]
+		validator    validation.Validator[int]
 		customName   string
 		value        int
 		expectError  bool

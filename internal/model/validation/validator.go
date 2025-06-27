@@ -1,17 +1,13 @@
-package validators
-
-import (
-	"github.com/William-Fernandes252/clavis/internal/model/validation"
-)
+package validation
 
 // Validator is a generic type that defines a validation function for a specific type T.
 type Validator[T any] struct {
 	Name     *string // Optional name of the validator
-	Validate func(value T, ctx validation.Context) *validation.ValidationError
+	Validate func(value T, ctx Context) *ValidationError
 }
 
 // NewValidator creates a new validator with just the validation function
-func NewValidator[T any](validateFn func(value T, ctx validation.Context) *validation.ValidationError) Validator[T] {
+func NewValidator[T any](validateFn func(value T, ctx Context) *ValidationError) Validator[T] {
 	return Validator[T]{
 		Name:     nil,
 		Validate: validateFn,
@@ -53,8 +49,8 @@ func (vc *ValidatorChain[T]) Add(validator Validator[T]) *ValidatorChain[T] {
 }
 
 // Validate runs all validators in the chain and returns all errors
-func (vc *ValidatorChain[T]) Validate(value T, ctx validation.Context) *validation.ValidationResult {
-	errs := validation.NewValidationResult()
+func (vc *ValidatorChain[T]) Validate(value T, ctx Context) *ValidationResult {
+	errs := NewValidationResult()
 
 	for _, validator := range vc.validators {
 		if err := validator.Validate(value, ctx); err != nil {
@@ -66,7 +62,7 @@ func (vc *ValidatorChain[T]) Validate(value T, ctx validation.Context) *validati
 }
 
 // ValidateFirst runs validators until the first error and returns it
-func (vc *ValidatorChain[T]) ValidateFirst(value T, ctx validation.Context) *validation.ValidationError {
+func (vc *ValidatorChain[T]) ValidateFirst(value T, ctx Context) *ValidationError {
 	for _, validator := range vc.validators {
 		if err := validator.Validate(value, ctx); err != nil {
 			return err
@@ -77,12 +73,12 @@ func (vc *ValidatorChain[T]) ValidateFirst(value T, ctx validation.Context) *val
 
 // ConditionalValidator wraps a validator with a condition
 type ConditionalValidator[T any] struct {
-	Condition func(value T, ctx validation.Context) bool
+	Condition func(value T, ctx Context) bool
 	Validator Validator[T]
 }
 
 // NewConditionalValidator creates a validator that only runs if the condition is met
-func NewConditionalValidator[T any](condition func(value T, ctx validation.Context) bool, validator Validator[T]) ConditionalValidator[T] {
+func NewConditionalValidator[T any](condition func(value T, ctx Context) bool, validator Validator[T]) ConditionalValidator[T] {
 	return ConditionalValidator[T]{
 		Condition: condition,
 		Validator: validator,
@@ -90,7 +86,7 @@ func NewConditionalValidator[T any](condition func(value T, ctx validation.Conte
 }
 
 // Validate runs the validator only if the condition is met
-func (cv ConditionalValidator[T]) Validate(value T, ctx validation.Context) *validation.ValidationError {
+func (cv ConditionalValidator[T]) Validate(value T, ctx Context) *ValidationError {
 	if cv.Condition(value, ctx) {
 		return cv.Validator.Validate(value, ctx)
 	}

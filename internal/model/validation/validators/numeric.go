@@ -3,12 +3,15 @@ package validators
 import (
 	"fmt"
 
+	"github.com/William-Fernandes252/clavis/internal/model/data"
 	"github.com/William-Fernandes252/clavis/internal/model/validation"
 )
 
+type NumericValidator[T data.Number] = validation.Validator[T]
+
 // NumericRange validates that a number is within the specified range
-func NumericRange[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64](min, max T) Validator[T] {
-	return NewValidator(func(value T, ctx validation.Context) *validation.ValidationError {
+func NumericRange[T data.Number](min, max T) validation.Validator[T] {
+	return validation.NewValidator(func(value T, ctx validation.Context) *validation.ValidationError {
 		if value < min || value > max {
 			msg := fmt.Sprintf("%s: must be between %v and %v, got %v",
 				ctx.Target, min, max, value)
@@ -27,8 +30,8 @@ func NumericRange[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~
 }
 
 // Min validates minimum value
-func Min[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64](min T) Validator[T] {
-	return NewValidator(func(value T, ctx validation.Context) *validation.ValidationError {
+func Min[T data.Number](min T) validation.Validator[T] {
+	return validation.NewValidator(func(value T, ctx validation.Context) *validation.ValidationError {
 		if value < min {
 			msg := fmt.Sprintf("%s: must be at least %v, got %v",
 				ctx.Target, min, value)
@@ -46,8 +49,8 @@ func Min[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | 
 }
 
 // Max validates maximum value
-func Max[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64](max T) Validator[T] {
-	return NewValidator(func(value T, ctx validation.Context) *validation.ValidationError {
+func Max[T data.Number](max T) validation.Validator[T] {
+	return validation.NewValidator(func(value T, ctx validation.Context) *validation.ValidationError {
 		if value > max {
 			msg := fmt.Sprintf("%s: must be at most %v, got %v",
 				ctx.Target, max, value)
@@ -65,8 +68,8 @@ func Max[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | 
 }
 
 // Positive validates that a number is positive
-func Positive[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64]() Validator[T] {
-	return NewValidator(func(value T, ctx validation.Context) *validation.ValidationError {
+func Positive[T data.Number]() validation.Validator[T] {
+	return validation.NewValidator(func(value T, ctx validation.Context) *validation.ValidationError {
 		if value <= 0 {
 			msg := fmt.Sprintf("%s: must be positive, got %v", ctx.Target, value)
 			err := validation.NewValidationError(
@@ -81,8 +84,8 @@ func Positive[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint
 }
 
 // NonNegative validates that a number is non-negative
-func NonNegative[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64]() Validator[T] {
-	return NewValidator(func(value T, ctx validation.Context) *validation.ValidationError {
+func NonNegative[T data.Number]() validation.Validator[T] {
+	return validation.NewValidator(func(value T, ctx validation.Context) *validation.ValidationError {
 		if value < 0 {
 			msg := fmt.Sprintf("%s: must be non-negative, got %v", ctx.Target, value)
 			err := validation.NewValidationError(
