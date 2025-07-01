@@ -29,11 +29,11 @@ type ErrorData struct {
 	Type     ErrorType      `json:"type"`
 	Code     string         `json:"code,omitempty"`
 	Metadata map[string]any `json:"metadata,omitempty"`
-	Message  *string        `json:"message,omitempty"`
+	Message  string         `json:"message,omitempty"`
 }
 
 // NewErrorData creates a new ErrorData instance
-func NewErrorData(errType ErrorType, code string, message *string) *ErrorData {
+func NewErrorData(errType ErrorType, code string, message string) *ErrorData {
 	return &ErrorData{
 		Type:     errType,
 		Code:     code,

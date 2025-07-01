@@ -12,7 +12,6 @@ import (
 	"github.com/William-Fernandes252/clavis/api/proto"
 	grpcserver "github.com/William-Fernandes252/clavis/internal/server/grpc"
 	"github.com/William-Fernandes252/clavis/internal/store/badger"
-	"github.com/William-Fernandes252/clavis/internal/store/validation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -48,9 +47,6 @@ func NewTestServer(t testing.TB) *TestServer {
 		t.Fatalf("Failed to create BadgerDB store: %v", err)
 	}
 
-	// Wrap with validation
-	validatedStore := validation.NewWithDefaultValidators(badgerStore)
-
 	// Create gRPC server with larger message limits
 	grpcServer := grpc.NewServer(
 		grpc.MaxRecvMsgSize(maxMessageSize), // 128MB
@@ -73,7 +69,7 @@ func NewTestServer(t testing.TB) *TestServer {
 	config := &grpcserver.GRPCServerConfig{Port: address}
 
 	// Create clavis gRPC server
-	server, err := grpcserver.New(validatedStore, config, grpcServer)
+	server, err := grpcserver.New(badgerStore, config, grpcServer)
 	if err != nil {
 		if closeErr := listener.Close(); closeErr != nil {
 			t.Logf("Failed to close listener: %v", closeErr)
@@ -602,9 +598,6 @@ func TestGRPCServer_Integration_Persistence(t *testing.T) {
 			}
 		}() // Clean up at the end
 
-		// Wrap with validation
-		validatedStore := validation.NewWithDefaultValidators(badgerStore)
-
 		// Create new gRPC server with larger message limits
 		grpcServer := grpc.NewServer(
 			grpc.MaxRecvMsgSize(maxMessageSize), // 128MB
@@ -621,7 +614,7 @@ func TestGRPCServer_Integration_Persistence(t *testing.T) {
 		}()
 
 		config := &grpcserver.GRPCServerConfig{Port: listener.Addr().String()}
-		server, err := grpcserver.New(validatedStore, config, grpcServer)
+		server, err := grpcserver.New(badgerStore, config, grpcServer)
 		if err != nil {
 			t.Fatalf("Failed to create gRPC server: %v", err)
 		}
