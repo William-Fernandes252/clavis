@@ -1,0 +1,267 @@
+syntax = "proto3";
+
+package clavis.v1;
+
+option go_package = "pkg/proto";
+
+service Clavis {
+  // Get retrieves a value by its key.
+  // Returns a response indicating whether the key was found and the value.
+  // If the key does not exist, found will be false and value will be empty.
+  // If the key exists, found will be true and value will contain the data.
+  // If an error occurs, the response will contain an error message.
+  rpc Get(GetRequest) returns (GetResponse) {}
+
+  // Set sets a value for a key.
+  // If the key already exists, it can be set conditionally based
+  // on flags (NX for "not exists", XX for "exists").
+  // The response will indicate success or failure,
+  // and can optionally return the old value if the key existed.
+  // If an error occurs, the response will contain an error message.
+  rpc Set(SetRequest) returns (SetResponse) {}
+
+  // Del deletes a key.
+  // Returns a response indicating whether the deletion was successful.
+  // If the key does not exist, success is false and error contains a message.
+  // If the key exists and is deleted, success is true and error is empty.
+  // If an error occurs, the response will contain an error message.
+  rpc Del(DelRequest) returns (DelResponse) {}
+
+  // Ping checks the connection to the server.
+  // Returns a simple acknowledgment message.
+  rpc Ping(PingRequest) returns (PingResponse) {}
+
+  // LPush pushes one or more values to the left end of a list.
+  // Returns the length of the list after the operation.
+  rpc LPush(LPushRequest) returns (LPushResponse) {}
+
+  // LPop pops the first element from a list.
+  // Returns the popped value or an error if the list is
+  // empty or does not exist.
+  rpc LPop(LPopRequest) returns (LPopResponse) {}
+
+  // LLen retrieves the length of a list.
+  // Returns the length or an error if the key does not exist or is not a list
+  rpc LLen(LLenRequest) returns (LLenResponse) {}
+
+  // LMove moves an element from one list to another.
+  // The element is moved from the specified side of the source
+  // list to the specified side of the destination list.
+  // Returns the moved element or an error if the source list is
+  // empty or does not exist
+  rpc LMove(LMoveRequest) returns (LMoveResponse) {}
+
+  // LRange retrieves a range of elements from a list.
+  // The range is specified by start and end indices.
+  // Returns the elements in the specified range or an
+  // error if the key does not exist or
+  // is not a list.
+  rpc LRange(LRangeRequest) returns (LRangeResponse) {}
+
+  // LTrim trims a list to the specified range.
+  // The range is specified by start and stop indices.
+  // Returns an acknowledgment on success or an error
+  // if the key does not exist or is not
+  // a list.
+  rpc LTrim(LTrimRequest) returns (LTrimResponse) {}
+}
+
+// Side indicates the side of a list (LEFT or RIGHT)
+enum Side {
+  SIDE_UNSPECIFIED = 0; // Default value, should not be used
+  SIDE_LEFT = 1;
+  SIDE_RIGHT = 2;
+}
+
+// Empty message for requests that do not require parameters
+message Empty {
+
+}
+
+message GetRequest {
+  // The key whose value to retrieve
+  string key = 1;
+}
+
+message GetResponse {
+  oneof result {
+    // If the key exists, its value (arbitrary binary/text)
+    bytes value = 1;
+
+    // If the key does not exist
+    Empty not_found = 2;
+
+    // If an error occurred
+    string error = 3;
+  }
+}
+
+message SetRequest {
+  // The key to set
+  string key = 1;
+
+  // The value to associate with the key
+  bytes value = 2;
+
+  oneof flags {
+    // Set the key only if it does not already exist (NX)
+    bool nx = 3;
+    // Set the key only if it already exists (XX)
+    bool xx = 4;
+  }
+
+  // Return the old value if the key already exists
+  bool get = 5;
+
+  // Optional expiration. Only one may be set.
+  oneof expiration {
+    // Expire after this many seconds (EX)
+    uint32 ex_seconds = 6;
+    // Expire after this many milliseconds (PX)
+    uint64 px_milliseconds = 7;
+    // Set the specific expiration time (EXAT)
+    uint64 exat_seconds = 8;
+    // Set the specific expiration time in milliseconds (PXAT)
+    uint64 pxat_milliseconds = 9;
+    // Keep the key alive indefinitely (KEEPTTL)
+    bool keep_ttl = 10;
+  }
+}
+
+message SetResponse {
+  // OK on success, or an error message
+  oneof result {
+    string ok = 1;    // usually "OK"
+    string error = 2;  // Redis error reply
+  }
+  optional bytes old_value = 3; // Old value if get was true
+}
+
+message DelRequest {
+  // The key to delete
+  string key = 1;
+}
+
+message DelResponse {
+  // Indicates whether the deletion was successful
+  bool success = 1;
+  // Error message if the operation fails
+  string error = 2;
+}
+
+message PingRequest {
+  // Empty message for ping requests
+}
+
+message PingResponse {
+  // Response to a ping request, typically just an acknowledgment
+  string message = 1; // e.g., "PONG"
+}
+
+message LPushRequest {
+  // The key of the list to which values will be pushed
+  string key = 1;
+  // Values to push to the list
+  repeated bytes values = 2; // Values to push to the list
+}
+
+message LPushResponse {
+  oneof result {
+    // Length of the list after push
+    int64 list_length = 1;
+    // If the key does not exist or is not a list
+    string error = 2;
+  }
+}
+
+message LPopRequest {
+  // The key of the list from which to pop the first element
+  string key = 1;
+}
+
+message LPopResponse {
+  oneof result {
+    // First element popped
+    bytes value = 1;
+    // If list is empty or key doesn't exist
+    Empty not_found = 2;
+    // If an error occurred
+    string error = 3;
+  }
+}
+
+message LLenRequest {
+  // The key of the list whose length to retrieve
+  string key = 1;
+}
+
+message LLenResponse {
+  oneof result {
+    // Length of the list
+    int64 length = 1;
+    // If the key does not exist or is not a list
+    string error = 2;
+  }
+}
+
+message LMoveRequest {
+  // The keys of the source and destination lists
+  string source = 1;
+  // The key of the destination list
+  string destination = 2;
+  // LEFT or RIGHT
+  Side from = 3;
+  // LEFT or RIGHT
+  Side to = 4;
+}
+
+message LMoveResponse {
+  oneof result {
+    // The element moved from source to destination
+    bytes moved_element = 1;
+    // If the source list is empty or does not exist
+    Empty not_found = 2;
+    // If an error occurred
+    string error = 3;
+  }
+}
+
+message LRangeRequest {
+  // The key of the list to retrieve elements from
+  string key = 1;
+  // Start index (inclusive)
+  int64 start = 2;
+  // End index (inclusive)
+  int64 end = 3;
+}
+
+message LRangeData {
+  // The elements in the specified range
+  repeated bytes elements = 1;
+}
+
+message LRangeResponse {
+  oneof result {
+    // The elements in the specified range
+    LRangeData data = 1;
+    // If the key does not exist or is not a list
+    string error = 2;
+  }
+}
+
+message LTrimRequest {
+  // The key of the list to trim
+  string key = 1;
+  // Start index (inclusive)
+  int64 start = 2;
+  // End index (inclusive)
+  int64 stop = 3;
+}
+
+message LTrimResponse {
+  oneof result {
+    string ok = 1; // usually "OK"
+    // If the key does not exist or is not a list
+    string error = 2;
+  }
+}
