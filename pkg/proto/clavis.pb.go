@@ -21,6 +21,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Side indicates the side of a list (LEFT or RIGHT)
 type Side int32
 
 const (
@@ -261,8 +262,8 @@ type SetRequest struct {
 	Value []byte `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	// Types that are valid to be assigned to Flags:
 	//
-	//	*SetRequest_Nx
-	//	*SetRequest_Xx
+	//	*SetRequest_Create
+	//	*SetRequest_Update
 	Flags isSetRequest_Flags `protobuf_oneof:"flags"`
 	// Return the old value if the key already exists
 	Get bool `protobuf:"varint,5,opt,name=get,proto3" json:"get,omitempty"`
@@ -270,10 +271,10 @@ type SetRequest struct {
 	//
 	// Types that are valid to be assigned to Expiration:
 	//
-	//	*SetRequest_ExSeconds
-	//	*SetRequest_PxMilliseconds
-	//	*SetRequest_ExatSeconds
-	//	*SetRequest_PxatMilliseconds
+	//	*SetRequest_Seconds
+	//	*SetRequest_Milliseconds
+	//	*SetRequest_UnixSeconds
+	//	*SetRequest_UnixMilliseconds
 	//	*SetRequest_KeepTtl
 	Expiration    isSetRequest_Expiration `protobuf_oneof:"expiration"`
 	unknownFields protoimpl.UnknownFields
@@ -331,19 +332,19 @@ func (x *SetRequest) GetFlags() isSetRequest_Flags {
 	return nil
 }
 
-func (x *SetRequest) GetNx() bool {
+func (x *SetRequest) GetCreate() bool {
 	if x != nil {
-		if x, ok := x.Flags.(*SetRequest_Nx); ok {
-			return x.Nx
+		if x, ok := x.Flags.(*SetRequest_Create); ok {
+			return x.Create
 		}
 	}
 	return false
 }
 
-func (x *SetRequest) GetXx() bool {
+func (x *SetRequest) GetUpdate() bool {
 	if x != nil {
-		if x, ok := x.Flags.(*SetRequest_Xx); ok {
-			return x.Xx
+		if x, ok := x.Flags.(*SetRequest_Update); ok {
+			return x.Update
 		}
 	}
 	return false
@@ -363,37 +364,37 @@ func (x *SetRequest) GetExpiration() isSetRequest_Expiration {
 	return nil
 }
 
-func (x *SetRequest) GetExSeconds() uint32 {
+func (x *SetRequest) GetSeconds() uint32 {
 	if x != nil {
-		if x, ok := x.Expiration.(*SetRequest_ExSeconds); ok {
-			return x.ExSeconds
+		if x, ok := x.Expiration.(*SetRequest_Seconds); ok {
+			return x.Seconds
 		}
 	}
 	return 0
 }
 
-func (x *SetRequest) GetPxMilliseconds() uint64 {
+func (x *SetRequest) GetMilliseconds() uint64 {
 	if x != nil {
-		if x, ok := x.Expiration.(*SetRequest_PxMilliseconds); ok {
-			return x.PxMilliseconds
+		if x, ok := x.Expiration.(*SetRequest_Milliseconds); ok {
+			return x.Milliseconds
 		}
 	}
 	return 0
 }
 
-func (x *SetRequest) GetExatSeconds() uint64 {
+func (x *SetRequest) GetUnixSeconds() uint64 {
 	if x != nil {
-		if x, ok := x.Expiration.(*SetRequest_ExatSeconds); ok {
-			return x.ExatSeconds
+		if x, ok := x.Expiration.(*SetRequest_UnixSeconds); ok {
+			return x.UnixSeconds
 		}
 	}
 	return 0
 }
 
-func (x *SetRequest) GetPxatMilliseconds() uint64 {
+func (x *SetRequest) GetUnixMilliseconds() uint64 {
 	if x != nil {
-		if x, ok := x.Expiration.(*SetRequest_PxatMilliseconds); ok {
-			return x.PxatMilliseconds
+		if x, ok := x.Expiration.(*SetRequest_UnixMilliseconds); ok {
+			return x.UnixMilliseconds
 		}
 	}
 	return 0
@@ -412,56 +413,56 @@ type isSetRequest_Flags interface {
 	isSetRequest_Flags()
 }
 
-type SetRequest_Nx struct {
-	// Set the key only if it does not already exist (NX)
-	Nx bool `protobuf:"varint,3,opt,name=nx,proto3,oneof"`
+type SetRequest_Create struct {
+	// Set the key only if it does not already exist
+	Create bool `protobuf:"varint,3,opt,name=create,proto3,oneof"`
 }
 
-type SetRequest_Xx struct {
-	// Set the key only if it already exists (XX)
-	Xx bool `protobuf:"varint,4,opt,name=xx,proto3,oneof"`
+type SetRequest_Update struct {
+	// Set the key only if it already exists
+	Update bool `protobuf:"varint,4,opt,name=update,proto3,oneof"`
 }
 
-func (*SetRequest_Nx) isSetRequest_Flags() {}
+func (*SetRequest_Create) isSetRequest_Flags() {}
 
-func (*SetRequest_Xx) isSetRequest_Flags() {}
+func (*SetRequest_Update) isSetRequest_Flags() {}
 
 type isSetRequest_Expiration interface {
 	isSetRequest_Expiration()
 }
 
-type SetRequest_ExSeconds struct {
-	// Expire after this many seconds (EX)
-	ExSeconds uint32 `protobuf:"varint,6,opt,name=ex_seconds,json=exSeconds,proto3,oneof"`
+type SetRequest_Seconds struct {
+	// Expire after this many seconds
+	Seconds uint32 `protobuf:"varint,6,opt,name=seconds,proto3,oneof"`
 }
 
-type SetRequest_PxMilliseconds struct {
-	// Expire after this many milliseconds (PX)
-	PxMilliseconds uint64 `protobuf:"varint,7,opt,name=px_milliseconds,json=pxMilliseconds,proto3,oneof"`
+type SetRequest_Milliseconds struct {
+	// Expire after this many milliseconds
+	Milliseconds uint64 `protobuf:"varint,7,opt,name=milliseconds,proto3,oneof"`
 }
 
-type SetRequest_ExatSeconds struct {
-	// Set the specific expiration time (EXAT)
-	ExatSeconds uint64 `protobuf:"varint,8,opt,name=exat_seconds,json=exatSeconds,proto3,oneof"`
+type SetRequest_UnixSeconds struct {
+	// Set the specific expiration time
+	UnixSeconds uint64 `protobuf:"varint,8,opt,name=unix_seconds,json=unixSeconds,proto3,oneof"`
 }
 
-type SetRequest_PxatMilliseconds struct {
-	// Set the specific expiration time in milliseconds (PXAT)
-	PxatMilliseconds uint64 `protobuf:"varint,9,opt,name=pxat_milliseconds,json=pxatMilliseconds,proto3,oneof"`
+type SetRequest_UnixMilliseconds struct {
+	// Set the specific expiration time in milliseconds
+	UnixMilliseconds uint64 `protobuf:"varint,9,opt,name=unix_milliseconds,json=unixMilliseconds,proto3,oneof"`
 }
 
 type SetRequest_KeepTtl struct {
-	// Keep the key alive indefinitely (KEEPTTL)
+	// Keep the key alive indefinitely
 	KeepTtl bool `protobuf:"varint,10,opt,name=keep_ttl,json=keepTtl,proto3,oneof"`
 }
 
-func (*SetRequest_ExSeconds) isSetRequest_Expiration() {}
+func (*SetRequest_Seconds) isSetRequest_Expiration() {}
 
-func (*SetRequest_PxMilliseconds) isSetRequest_Expiration() {}
+func (*SetRequest_Milliseconds) isSetRequest_Expiration() {}
 
-func (*SetRequest_ExatSeconds) isSetRequest_Expiration() {}
+func (*SetRequest_UnixSeconds) isSetRequest_Expiration() {}
 
-func (*SetRequest_PxatMilliseconds) isSetRequest_Expiration() {}
+func (*SetRequest_UnixMilliseconds) isSetRequest_Expiration() {}
 
 func (*SetRequest_KeepTtl) isSetRequest_Expiration() {}
 
@@ -737,7 +738,7 @@ func (x *PingResponse) GetMessage() string {
 	return ""
 }
 
-type LPushRequest struct {
+type ListPushRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The key of the list to which values will be pushed
 	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -747,20 +748,20 @@ type LPushRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LPushRequest) Reset() {
-	*x = LPushRequest{}
+func (x *ListPushRequest) Reset() {
+	*x = ListPushRequest{}
 	mi := &file_clavis_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LPushRequest) String() string {
+func (x *ListPushRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LPushRequest) ProtoMessage() {}
+func (*ListPushRequest) ProtoMessage() {}
 
-func (x *LPushRequest) ProtoReflect() protoreflect.Message {
+func (x *ListPushRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_clavis_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -772,50 +773,50 @@ func (x *LPushRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LPushRequest.ProtoReflect.Descriptor instead.
-func (*LPushRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListPushRequest.ProtoReflect.Descriptor instead.
+func (*ListPushRequest) Descriptor() ([]byte, []int) {
 	return file_clavis_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *LPushRequest) GetKey() string {
+func (x *ListPushRequest) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
 	return ""
 }
 
-func (x *LPushRequest) GetValues() [][]byte {
+func (x *ListPushRequest) GetValues() [][]byte {
 	if x != nil {
 		return x.Values
 	}
 	return nil
 }
 
-type LPushResponse struct {
+type ListPushResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Result:
 	//
-	//	*LPushResponse_ListLength
-	//	*LPushResponse_Error
-	Result        isLPushResponse_Result `protobuf_oneof:"result"`
+	//	*ListPushResponse_ListLength
+	//	*ListPushResponse_Error
+	Result        isListPushResponse_Result `protobuf_oneof:"result"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LPushResponse) Reset() {
-	*x = LPushResponse{}
+func (x *ListPushResponse) Reset() {
+	*x = ListPushResponse{}
 	mi := &file_clavis_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LPushResponse) String() string {
+func (x *ListPushResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LPushResponse) ProtoMessage() {}
+func (*ListPushResponse) ProtoMessage() {}
 
-func (x *LPushResponse) ProtoReflect() protoreflect.Message {
+func (x *ListPushResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_clavis_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -827,55 +828,55 @@ func (x *LPushResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LPushResponse.ProtoReflect.Descriptor instead.
-func (*LPushResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListPushResponse.ProtoReflect.Descriptor instead.
+func (*ListPushResponse) Descriptor() ([]byte, []int) {
 	return file_clavis_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *LPushResponse) GetResult() isLPushResponse_Result {
+func (x *ListPushResponse) GetResult() isListPushResponse_Result {
 	if x != nil {
 		return x.Result
 	}
 	return nil
 }
 
-func (x *LPushResponse) GetListLength() int64 {
+func (x *ListPushResponse) GetListLength() int64 {
 	if x != nil {
-		if x, ok := x.Result.(*LPushResponse_ListLength); ok {
+		if x, ok := x.Result.(*ListPushResponse_ListLength); ok {
 			return x.ListLength
 		}
 	}
 	return 0
 }
 
-func (x *LPushResponse) GetError() string {
+func (x *ListPushResponse) GetError() string {
 	if x != nil {
-		if x, ok := x.Result.(*LPushResponse_Error); ok {
+		if x, ok := x.Result.(*ListPushResponse_Error); ok {
 			return x.Error
 		}
 	}
 	return ""
 }
 
-type isLPushResponse_Result interface {
-	isLPushResponse_Result()
+type isListPushResponse_Result interface {
+	isListPushResponse_Result()
 }
 
-type LPushResponse_ListLength struct {
+type ListPushResponse_ListLength struct {
 	// Length of the list after push
 	ListLength int64 `protobuf:"varint,1,opt,name=list_length,json=listLength,proto3,oneof"`
 }
 
-type LPushResponse_Error struct {
+type ListPushResponse_Error struct {
 	// If the key does not exist or is not a list
 	Error string `protobuf:"bytes,2,opt,name=error,proto3,oneof"`
 }
 
-func (*LPushResponse_ListLength) isLPushResponse_Result() {}
+func (*ListPushResponse_ListLength) isListPushResponse_Result() {}
 
-func (*LPushResponse_Error) isLPushResponse_Result() {}
+func (*ListPushResponse_Error) isListPushResponse_Result() {}
 
-type LPopRequest struct {
+type ListPopRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The key of the list from which to pop the first element
 	Key           string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -883,20 +884,20 @@ type LPopRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LPopRequest) Reset() {
-	*x = LPopRequest{}
+func (x *ListPopRequest) Reset() {
+	*x = ListPopRequest{}
 	mi := &file_clavis_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LPopRequest) String() string {
+func (x *ListPopRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LPopRequest) ProtoMessage() {}
+func (*ListPopRequest) ProtoMessage() {}
 
-func (x *LPopRequest) ProtoReflect() protoreflect.Message {
+func (x *ListPopRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_clavis_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -908,44 +909,44 @@ func (x *LPopRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LPopRequest.ProtoReflect.Descriptor instead.
-func (*LPopRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListPopRequest.ProtoReflect.Descriptor instead.
+func (*ListPopRequest) Descriptor() ([]byte, []int) {
 	return file_clavis_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *LPopRequest) GetKey() string {
+func (x *ListPopRequest) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
 	return ""
 }
 
-type LPopResponse struct {
+type ListPopResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Result:
 	//
-	//	*LPopResponse_Value
-	//	*LPopResponse_NotFound
-	//	*LPopResponse_Error
-	Result        isLPopResponse_Result `protobuf_oneof:"result"`
+	//	*ListPopResponse_Value
+	//	*ListPopResponse_NotFound
+	//	*ListPopResponse_Error
+	Result        isListPopResponse_Result `protobuf_oneof:"result"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LPopResponse) Reset() {
-	*x = LPopResponse{}
+func (x *ListPopResponse) Reset() {
+	*x = ListPopResponse{}
 	mi := &file_clavis_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LPopResponse) String() string {
+func (x *ListPopResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LPopResponse) ProtoMessage() {}
+func (*ListPopResponse) ProtoMessage() {}
 
-func (x *LPopResponse) ProtoReflect() protoreflect.Message {
+func (x *ListPopResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_clavis_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -957,71 +958,71 @@ func (x *LPopResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LPopResponse.ProtoReflect.Descriptor instead.
-func (*LPopResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListPopResponse.ProtoReflect.Descriptor instead.
+func (*ListPopResponse) Descriptor() ([]byte, []int) {
 	return file_clavis_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *LPopResponse) GetResult() isLPopResponse_Result {
+func (x *ListPopResponse) GetResult() isListPopResponse_Result {
 	if x != nil {
 		return x.Result
 	}
 	return nil
 }
 
-func (x *LPopResponse) GetValue() []byte {
+func (x *ListPopResponse) GetValue() []byte {
 	if x != nil {
-		if x, ok := x.Result.(*LPopResponse_Value); ok {
+		if x, ok := x.Result.(*ListPopResponse_Value); ok {
 			return x.Value
 		}
 	}
 	return nil
 }
 
-func (x *LPopResponse) GetNotFound() *Empty {
+func (x *ListPopResponse) GetNotFound() *Empty {
 	if x != nil {
-		if x, ok := x.Result.(*LPopResponse_NotFound); ok {
+		if x, ok := x.Result.(*ListPopResponse_NotFound); ok {
 			return x.NotFound
 		}
 	}
 	return nil
 }
 
-func (x *LPopResponse) GetError() string {
+func (x *ListPopResponse) GetError() string {
 	if x != nil {
-		if x, ok := x.Result.(*LPopResponse_Error); ok {
+		if x, ok := x.Result.(*ListPopResponse_Error); ok {
 			return x.Error
 		}
 	}
 	return ""
 }
 
-type isLPopResponse_Result interface {
-	isLPopResponse_Result()
+type isListPopResponse_Result interface {
+	isListPopResponse_Result()
 }
 
-type LPopResponse_Value struct {
+type ListPopResponse_Value struct {
 	// First element popped
 	Value []byte `protobuf:"bytes,1,opt,name=value,proto3,oneof"`
 }
 
-type LPopResponse_NotFound struct {
+type ListPopResponse_NotFound struct {
 	// If list is empty or key doesn't exist
 	NotFound *Empty `protobuf:"bytes,2,opt,name=not_found,json=notFound,proto3,oneof"`
 }
 
-type LPopResponse_Error struct {
+type ListPopResponse_Error struct {
 	// If an error occurred
 	Error string `protobuf:"bytes,3,opt,name=error,proto3,oneof"`
 }
 
-func (*LPopResponse_Value) isLPopResponse_Result() {}
+func (*ListPopResponse_Value) isListPopResponse_Result() {}
 
-func (*LPopResponse_NotFound) isLPopResponse_Result() {}
+func (*ListPopResponse_NotFound) isListPopResponse_Result() {}
 
-func (*LPopResponse_Error) isLPopResponse_Result() {}
+func (*ListPopResponse_Error) isListPopResponse_Result() {}
 
-type LLenRequest struct {
+type ListLenRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The key of the list whose length to retrieve
 	Key           string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -1029,20 +1030,20 @@ type LLenRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LLenRequest) Reset() {
-	*x = LLenRequest{}
+func (x *ListLenRequest) Reset() {
+	*x = ListLenRequest{}
 	mi := &file_clavis_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LLenRequest) String() string {
+func (x *ListLenRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LLenRequest) ProtoMessage() {}
+func (*ListLenRequest) ProtoMessage() {}
 
-func (x *LLenRequest) ProtoReflect() protoreflect.Message {
+func (x *ListLenRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_clavis_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1054,43 +1055,43 @@ func (x *LLenRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LLenRequest.ProtoReflect.Descriptor instead.
-func (*LLenRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListLenRequest.ProtoReflect.Descriptor instead.
+func (*ListLenRequest) Descriptor() ([]byte, []int) {
 	return file_clavis_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *LLenRequest) GetKey() string {
+func (x *ListLenRequest) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
 	return ""
 }
 
-type LLenResponse struct {
+type ListLenResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Result:
 	//
-	//	*LLenResponse_Length
-	//	*LLenResponse_Error
-	Result        isLLenResponse_Result `protobuf_oneof:"result"`
+	//	*ListLenResponse_Length
+	//	*ListLenResponse_Error
+	Result        isListLenResponse_Result `protobuf_oneof:"result"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LLenResponse) Reset() {
-	*x = LLenResponse{}
+func (x *ListLenResponse) Reset() {
+	*x = ListLenResponse{}
 	mi := &file_clavis_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LLenResponse) String() string {
+func (x *ListLenResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LLenResponse) ProtoMessage() {}
+func (*ListLenResponse) ProtoMessage() {}
 
-func (x *LLenResponse) ProtoReflect() protoreflect.Message {
+func (x *ListLenResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_clavis_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1102,55 +1103,55 @@ func (x *LLenResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LLenResponse.ProtoReflect.Descriptor instead.
-func (*LLenResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListLenResponse.ProtoReflect.Descriptor instead.
+func (*ListLenResponse) Descriptor() ([]byte, []int) {
 	return file_clavis_proto_rawDescGZIP(), []int{14}
 }
 
-func (x *LLenResponse) GetResult() isLLenResponse_Result {
+func (x *ListLenResponse) GetResult() isListLenResponse_Result {
 	if x != nil {
 		return x.Result
 	}
 	return nil
 }
 
-func (x *LLenResponse) GetLength() int64 {
+func (x *ListLenResponse) GetLength() int64 {
 	if x != nil {
-		if x, ok := x.Result.(*LLenResponse_Length); ok {
+		if x, ok := x.Result.(*ListLenResponse_Length); ok {
 			return x.Length
 		}
 	}
 	return 0
 }
 
-func (x *LLenResponse) GetError() string {
+func (x *ListLenResponse) GetError() string {
 	if x != nil {
-		if x, ok := x.Result.(*LLenResponse_Error); ok {
+		if x, ok := x.Result.(*ListLenResponse_Error); ok {
 			return x.Error
 		}
 	}
 	return ""
 }
 
-type isLLenResponse_Result interface {
-	isLLenResponse_Result()
+type isListLenResponse_Result interface {
+	isListLenResponse_Result()
 }
 
-type LLenResponse_Length struct {
+type ListLenResponse_Length struct {
 	// Length of the list
 	Length int64 `protobuf:"varint,1,opt,name=length,proto3,oneof"`
 }
 
-type LLenResponse_Error struct {
+type ListLenResponse_Error struct {
 	// If the key does not exist or is not a list
 	Error string `protobuf:"bytes,2,opt,name=error,proto3,oneof"`
 }
 
-func (*LLenResponse_Length) isLLenResponse_Result() {}
+func (*ListLenResponse_Length) isListLenResponse_Result() {}
 
-func (*LLenResponse_Error) isLLenResponse_Result() {}
+func (*ListLenResponse_Error) isListLenResponse_Result() {}
 
-type LMoveRequest struct {
+type ListMoveRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The keys of the source and destination lists
 	Source string `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
@@ -1164,20 +1165,20 @@ type LMoveRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LMoveRequest) Reset() {
-	*x = LMoveRequest{}
+func (x *ListMoveRequest) Reset() {
+	*x = ListMoveRequest{}
 	mi := &file_clavis_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LMoveRequest) String() string {
+func (x *ListMoveRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LMoveRequest) ProtoMessage() {}
+func (*ListMoveRequest) ProtoMessage() {}
 
-func (x *LMoveRequest) ProtoReflect() protoreflect.Message {
+func (x *ListMoveRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_clavis_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1189,65 +1190,65 @@ func (x *LMoveRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LMoveRequest.ProtoReflect.Descriptor instead.
-func (*LMoveRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListMoveRequest.ProtoReflect.Descriptor instead.
+func (*ListMoveRequest) Descriptor() ([]byte, []int) {
 	return file_clavis_proto_rawDescGZIP(), []int{15}
 }
 
-func (x *LMoveRequest) GetSource() string {
+func (x *ListMoveRequest) GetSource() string {
 	if x != nil {
 		return x.Source
 	}
 	return ""
 }
 
-func (x *LMoveRequest) GetDestination() string {
+func (x *ListMoveRequest) GetDestination() string {
 	if x != nil {
 		return x.Destination
 	}
 	return ""
 }
 
-func (x *LMoveRequest) GetFrom() Side {
+func (x *ListMoveRequest) GetFrom() Side {
 	if x != nil {
 		return x.From
 	}
 	return Side_SIDE_UNSPECIFIED
 }
 
-func (x *LMoveRequest) GetTo() Side {
+func (x *ListMoveRequest) GetTo() Side {
 	if x != nil {
 		return x.To
 	}
 	return Side_SIDE_UNSPECIFIED
 }
 
-type LMoveResponse struct {
+type ListMoveResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Result:
 	//
-	//	*LMoveResponse_MovedElement
-	//	*LMoveResponse_NotFound
-	//	*LMoveResponse_Error
-	Result        isLMoveResponse_Result `protobuf_oneof:"result"`
+	//	*ListMoveResponse_MovedElement
+	//	*ListMoveResponse_NotFound
+	//	*ListMoveResponse_Error
+	Result        isListMoveResponse_Result `protobuf_oneof:"result"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LMoveResponse) Reset() {
-	*x = LMoveResponse{}
+func (x *ListMoveResponse) Reset() {
+	*x = ListMoveResponse{}
 	mi := &file_clavis_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LMoveResponse) String() string {
+func (x *ListMoveResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LMoveResponse) ProtoMessage() {}
+func (*ListMoveResponse) ProtoMessage() {}
 
-func (x *LMoveResponse) ProtoReflect() protoreflect.Message {
+func (x *ListMoveResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_clavis_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1259,71 +1260,71 @@ func (x *LMoveResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LMoveResponse.ProtoReflect.Descriptor instead.
-func (*LMoveResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListMoveResponse.ProtoReflect.Descriptor instead.
+func (*ListMoveResponse) Descriptor() ([]byte, []int) {
 	return file_clavis_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *LMoveResponse) GetResult() isLMoveResponse_Result {
+func (x *ListMoveResponse) GetResult() isListMoveResponse_Result {
 	if x != nil {
 		return x.Result
 	}
 	return nil
 }
 
-func (x *LMoveResponse) GetMovedElement() []byte {
+func (x *ListMoveResponse) GetMovedElement() []byte {
 	if x != nil {
-		if x, ok := x.Result.(*LMoveResponse_MovedElement); ok {
+		if x, ok := x.Result.(*ListMoveResponse_MovedElement); ok {
 			return x.MovedElement
 		}
 	}
 	return nil
 }
 
-func (x *LMoveResponse) GetNotFound() *Empty {
+func (x *ListMoveResponse) GetNotFound() *Empty {
 	if x != nil {
-		if x, ok := x.Result.(*LMoveResponse_NotFound); ok {
+		if x, ok := x.Result.(*ListMoveResponse_NotFound); ok {
 			return x.NotFound
 		}
 	}
 	return nil
 }
 
-func (x *LMoveResponse) GetError() string {
+func (x *ListMoveResponse) GetError() string {
 	if x != nil {
-		if x, ok := x.Result.(*LMoveResponse_Error); ok {
+		if x, ok := x.Result.(*ListMoveResponse_Error); ok {
 			return x.Error
 		}
 	}
 	return ""
 }
 
-type isLMoveResponse_Result interface {
-	isLMoveResponse_Result()
+type isListMoveResponse_Result interface {
+	isListMoveResponse_Result()
 }
 
-type LMoveResponse_MovedElement struct {
+type ListMoveResponse_MovedElement struct {
 	// The element moved from source to destination
 	MovedElement []byte `protobuf:"bytes,1,opt,name=moved_element,json=movedElement,proto3,oneof"`
 }
 
-type LMoveResponse_NotFound struct {
+type ListMoveResponse_NotFound struct {
 	// If the source list is empty or does not exist
 	NotFound *Empty `protobuf:"bytes,2,opt,name=not_found,json=notFound,proto3,oneof"`
 }
 
-type LMoveResponse_Error struct {
+type ListMoveResponse_Error struct {
 	// If an error occurred
 	Error string `protobuf:"bytes,3,opt,name=error,proto3,oneof"`
 }
 
-func (*LMoveResponse_MovedElement) isLMoveResponse_Result() {}
+func (*ListMoveResponse_MovedElement) isListMoveResponse_Result() {}
 
-func (*LMoveResponse_NotFound) isLMoveResponse_Result() {}
+func (*ListMoveResponse_NotFound) isListMoveResponse_Result() {}
 
-func (*LMoveResponse_Error) isLMoveResponse_Result() {}
+func (*ListMoveResponse_Error) isListMoveResponse_Result() {}
 
-type LRangeRequest struct {
+type ListRangeRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The key of the list to retrieve elements from
 	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -1335,20 +1336,20 @@ type LRangeRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LRangeRequest) Reset() {
-	*x = LRangeRequest{}
+func (x *ListRangeRequest) Reset() {
+	*x = ListRangeRequest{}
 	mi := &file_clavis_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LRangeRequest) String() string {
+func (x *ListRangeRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LRangeRequest) ProtoMessage() {}
+func (*ListRangeRequest) ProtoMessage() {}
 
-func (x *LRangeRequest) ProtoReflect() protoreflect.Message {
+func (x *ListRangeRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_clavis_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1360,33 +1361,33 @@ func (x *LRangeRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LRangeRequest.ProtoReflect.Descriptor instead.
-func (*LRangeRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListRangeRequest.ProtoReflect.Descriptor instead.
+func (*ListRangeRequest) Descriptor() ([]byte, []int) {
 	return file_clavis_proto_rawDescGZIP(), []int{17}
 }
 
-func (x *LRangeRequest) GetKey() string {
+func (x *ListRangeRequest) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
 	return ""
 }
 
-func (x *LRangeRequest) GetStart() int64 {
+func (x *ListRangeRequest) GetStart() int64 {
 	if x != nil {
 		return x.Start
 	}
 	return 0
 }
 
-func (x *LRangeRequest) GetEnd() int64 {
+func (x *ListRangeRequest) GetEnd() int64 {
 	if x != nil {
 		return x.End
 	}
 	return 0
 }
 
-type LRangeData struct {
+type ListRangeData struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The elements in the specified range
 	Elements      [][]byte `protobuf:"bytes,1,rep,name=elements,proto3" json:"elements,omitempty"`
@@ -1394,20 +1395,20 @@ type LRangeData struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LRangeData) Reset() {
-	*x = LRangeData{}
+func (x *ListRangeData) Reset() {
+	*x = ListRangeData{}
 	mi := &file_clavis_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LRangeData) String() string {
+func (x *ListRangeData) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LRangeData) ProtoMessage() {}
+func (*ListRangeData) ProtoMessage() {}
 
-func (x *LRangeData) ProtoReflect() protoreflect.Message {
+func (x *ListRangeData) ProtoReflect() protoreflect.Message {
 	mi := &file_clavis_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1419,43 +1420,43 @@ func (x *LRangeData) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LRangeData.ProtoReflect.Descriptor instead.
-func (*LRangeData) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListRangeData.ProtoReflect.Descriptor instead.
+func (*ListRangeData) Descriptor() ([]byte, []int) {
 	return file_clavis_proto_rawDescGZIP(), []int{18}
 }
 
-func (x *LRangeData) GetElements() [][]byte {
+func (x *ListRangeData) GetElements() [][]byte {
 	if x != nil {
 		return x.Elements
 	}
 	return nil
 }
 
-type LRangeResponse struct {
+type ListRangeResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Result:
 	//
-	//	*LRangeResponse_Data
-	//	*LRangeResponse_Error
-	Result        isLRangeResponse_Result `protobuf_oneof:"result"`
+	//	*ListRangeResponse_Data
+	//	*ListRangeResponse_Error
+	Result        isListRangeResponse_Result `protobuf_oneof:"result"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LRangeResponse) Reset() {
-	*x = LRangeResponse{}
+func (x *ListRangeResponse) Reset() {
+	*x = ListRangeResponse{}
 	mi := &file_clavis_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LRangeResponse) String() string {
+func (x *ListRangeResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LRangeResponse) ProtoMessage() {}
+func (*ListRangeResponse) ProtoMessage() {}
 
-func (x *LRangeResponse) ProtoReflect() protoreflect.Message {
+func (x *ListRangeResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_clavis_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1467,55 +1468,55 @@ func (x *LRangeResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LRangeResponse.ProtoReflect.Descriptor instead.
-func (*LRangeResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListRangeResponse.ProtoReflect.Descriptor instead.
+func (*ListRangeResponse) Descriptor() ([]byte, []int) {
 	return file_clavis_proto_rawDescGZIP(), []int{19}
 }
 
-func (x *LRangeResponse) GetResult() isLRangeResponse_Result {
+func (x *ListRangeResponse) GetResult() isListRangeResponse_Result {
 	if x != nil {
 		return x.Result
 	}
 	return nil
 }
 
-func (x *LRangeResponse) GetData() *LRangeData {
+func (x *ListRangeResponse) GetData() *ListRangeData {
 	if x != nil {
-		if x, ok := x.Result.(*LRangeResponse_Data); ok {
+		if x, ok := x.Result.(*ListRangeResponse_Data); ok {
 			return x.Data
 		}
 	}
 	return nil
 }
 
-func (x *LRangeResponse) GetError() string {
+func (x *ListRangeResponse) GetError() string {
 	if x != nil {
-		if x, ok := x.Result.(*LRangeResponse_Error); ok {
+		if x, ok := x.Result.(*ListRangeResponse_Error); ok {
 			return x.Error
 		}
 	}
 	return ""
 }
 
-type isLRangeResponse_Result interface {
-	isLRangeResponse_Result()
+type isListRangeResponse_Result interface {
+	isListRangeResponse_Result()
 }
 
-type LRangeResponse_Data struct {
+type ListRangeResponse_Data struct {
 	// The elements in the specified range
-	Data *LRangeData `protobuf:"bytes,1,opt,name=data,proto3,oneof"`
+	Data *ListRangeData `protobuf:"bytes,1,opt,name=data,proto3,oneof"`
 }
 
-type LRangeResponse_Error struct {
+type ListRangeResponse_Error struct {
 	// If the key does not exist or is not a list
 	Error string `protobuf:"bytes,2,opt,name=error,proto3,oneof"`
 }
 
-func (*LRangeResponse_Data) isLRangeResponse_Result() {}
+func (*ListRangeResponse_Data) isListRangeResponse_Result() {}
 
-func (*LRangeResponse_Error) isLRangeResponse_Result() {}
+func (*ListRangeResponse_Error) isListRangeResponse_Result() {}
 
-type LTrimRequest struct {
+type ListTrimRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The key of the list to trim
 	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -1527,20 +1528,20 @@ type LTrimRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LTrimRequest) Reset() {
-	*x = LTrimRequest{}
+func (x *ListTrimRequest) Reset() {
+	*x = ListTrimRequest{}
 	mi := &file_clavis_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LTrimRequest) String() string {
+func (x *ListTrimRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LTrimRequest) ProtoMessage() {}
+func (*ListTrimRequest) ProtoMessage() {}
 
-func (x *LTrimRequest) ProtoReflect() protoreflect.Message {
+func (x *ListTrimRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_clavis_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1552,57 +1553,57 @@ func (x *LTrimRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LTrimRequest.ProtoReflect.Descriptor instead.
-func (*LTrimRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListTrimRequest.ProtoReflect.Descriptor instead.
+func (*ListTrimRequest) Descriptor() ([]byte, []int) {
 	return file_clavis_proto_rawDescGZIP(), []int{20}
 }
 
-func (x *LTrimRequest) GetKey() string {
+func (x *ListTrimRequest) GetKey() string {
 	if x != nil {
 		return x.Key
 	}
 	return ""
 }
 
-func (x *LTrimRequest) GetStart() int64 {
+func (x *ListTrimRequest) GetStart() int64 {
 	if x != nil {
 		return x.Start
 	}
 	return 0
 }
 
-func (x *LTrimRequest) GetStop() int64 {
+func (x *ListTrimRequest) GetStop() int64 {
 	if x != nil {
 		return x.Stop
 	}
 	return 0
 }
 
-type LTrimResponse struct {
+type ListTrimResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Result:
 	//
-	//	*LTrimResponse_Ok
-	//	*LTrimResponse_Error
-	Result        isLTrimResponse_Result `protobuf_oneof:"result"`
+	//	*ListTrimResponse_Ok
+	//	*ListTrimResponse_Error
+	Result        isListTrimResponse_Result `protobuf_oneof:"result"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LTrimResponse) Reset() {
-	*x = LTrimResponse{}
+func (x *ListTrimResponse) Reset() {
+	*x = ListTrimResponse{}
 	mi := &file_clavis_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LTrimResponse) String() string {
+func (x *ListTrimResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LTrimResponse) ProtoMessage() {}
+func (*ListTrimResponse) ProtoMessage() {}
 
-func (x *LTrimResponse) ProtoReflect() protoreflect.Message {
+func (x *ListTrimResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_clavis_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1614,52 +1615,52 @@ func (x *LTrimResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LTrimResponse.ProtoReflect.Descriptor instead.
-func (*LTrimResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListTrimResponse.ProtoReflect.Descriptor instead.
+func (*ListTrimResponse) Descriptor() ([]byte, []int) {
 	return file_clavis_proto_rawDescGZIP(), []int{21}
 }
 
-func (x *LTrimResponse) GetResult() isLTrimResponse_Result {
+func (x *ListTrimResponse) GetResult() isListTrimResponse_Result {
 	if x != nil {
 		return x.Result
 	}
 	return nil
 }
 
-func (x *LTrimResponse) GetOk() string {
+func (x *ListTrimResponse) GetOk() string {
 	if x != nil {
-		if x, ok := x.Result.(*LTrimResponse_Ok); ok {
+		if x, ok := x.Result.(*ListTrimResponse_Ok); ok {
 			return x.Ok
 		}
 	}
 	return ""
 }
 
-func (x *LTrimResponse) GetError() string {
+func (x *ListTrimResponse) GetError() string {
 	if x != nil {
-		if x, ok := x.Result.(*LTrimResponse_Error); ok {
+		if x, ok := x.Result.(*ListTrimResponse_Error); ok {
 			return x.Error
 		}
 	}
 	return ""
 }
 
-type isLTrimResponse_Result interface {
-	isLTrimResponse_Result()
+type isListTrimResponse_Result interface {
+	isListTrimResponse_Result()
 }
 
-type LTrimResponse_Ok struct {
+type ListTrimResponse_Ok struct {
 	Ok string `protobuf:"bytes,1,opt,name=ok,proto3,oneof"` // usually "OK"
 }
 
-type LTrimResponse_Error struct {
+type ListTrimResponse_Error struct {
 	// If the key does not exist or is not a list
 	Error string `protobuf:"bytes,2,opt,name=error,proto3,oneof"`
 }
 
-func (*LTrimResponse_Ok) isLTrimResponse_Result() {}
+func (*ListTrimResponse_Ok) isListTrimResponse_Result() {}
 
-func (*LTrimResponse_Error) isLTrimResponse_Result() {}
+func (*ListTrimResponse_Error) isListTrimResponse_Result() {}
 
 var File_clavis_proto protoreflect.FileDescriptor
 
@@ -1674,19 +1675,18 @@ const file_clavis_proto_rawDesc = "" +
 	"\x05value\x18\x01 \x01(\fH\x00R\x05value\x12/\n" +
 	"\tnot_found\x18\x02 \x01(\v2\x10.clavis.v1.EmptyH\x00R\bnotFound\x12\x16\n" +
 	"\x05error\x18\x03 \x01(\tH\x00R\x05errorB\b\n" +
-	"\x06result\"\xbe\x02\n" +
+	"\x06result\"\xc4\x02\n" +
 	"\n" +
 	"SetRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\fR\x05value\x12\x10\n" +
-	"\x02nx\x18\x03 \x01(\bH\x00R\x02nx\x12\x10\n" +
-	"\x02xx\x18\x04 \x01(\bH\x00R\x02xx\x12\x10\n" +
-	"\x03get\x18\x05 \x01(\bR\x03get\x12\x1f\n" +
-	"\n" +
-	"ex_seconds\x18\x06 \x01(\rH\x01R\texSeconds\x12)\n" +
-	"\x0fpx_milliseconds\x18\a \x01(\x04H\x01R\x0epxMilliseconds\x12#\n" +
-	"\fexat_seconds\x18\b \x01(\x04H\x01R\vexatSeconds\x12-\n" +
-	"\x11pxat_milliseconds\x18\t \x01(\x04H\x01R\x10pxatMilliseconds\x12\x1b\n" +
+	"\x05value\x18\x02 \x01(\fR\x05value\x12\x18\n" +
+	"\x06create\x18\x03 \x01(\bH\x00R\x06create\x12\x18\n" +
+	"\x06update\x18\x04 \x01(\bH\x00R\x06update\x12\x10\n" +
+	"\x03get\x18\x05 \x01(\bR\x03get\x12\x1a\n" +
+	"\aseconds\x18\x06 \x01(\rH\x01R\aseconds\x12$\n" +
+	"\fmilliseconds\x18\a \x01(\x04H\x01R\fmilliseconds\x12#\n" +
+	"\funix_seconds\x18\b \x01(\x04H\x01R\vunixSeconds\x12-\n" +
+	"\x11unix_milliseconds\x18\t \x01(\x04H\x01R\x10unixMilliseconds\x12\x1b\n" +
 	"\bkeep_ttl\x18\n" +
 	" \x01(\bH\x01R\akeepTtlB\a\n" +
 	"\x05flagsB\f\n" +
@@ -1707,54 +1707,53 @@ const file_clavis_proto_rawDesc = "" +
 	"\x05error\x18\x02 \x01(\tR\x05error\"\r\n" +
 	"\vPingRequest\"(\n" +
 	"\fPingResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\"8\n" +
-	"\fLPushRequest\x12\x10\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\";\n" +
+	"\x0fListPushRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x16\n" +
-	"\x06values\x18\x02 \x03(\fR\x06values\"T\n" +
-	"\rLPushResponse\x12!\n" +
+	"\x06values\x18\x02 \x03(\fR\x06values\"W\n" +
+	"\x10ListPushResponse\x12!\n" +
 	"\vlist_length\x18\x01 \x01(\x03H\x00R\n" +
 	"listLength\x12\x16\n" +
 	"\x05error\x18\x02 \x01(\tH\x00R\x05errorB\b\n" +
-	"\x06result\"\x1f\n" +
-	"\vLPopRequest\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\"y\n" +
-	"\fLPopResponse\x12\x16\n" +
+	"\x06result\"\"\n" +
+	"\x0eListPopRequest\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\"|\n" +
+	"\x0fListPopResponse\x12\x16\n" +
 	"\x05value\x18\x01 \x01(\fH\x00R\x05value\x12/\n" +
 	"\tnot_found\x18\x02 \x01(\v2\x10.clavis.v1.EmptyH\x00R\bnotFound\x12\x16\n" +
 	"\x05error\x18\x03 \x01(\tH\x00R\x05errorB\b\n" +
-	"\x06result\"\x1f\n" +
-	"\vLLenRequest\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\"J\n" +
-	"\fLLenResponse\x12\x18\n" +
+	"\x06result\"\"\n" +
+	"\x0eListLenRequest\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\"M\n" +
+	"\x0fListLenResponse\x12\x18\n" +
 	"\x06length\x18\x01 \x01(\x03H\x00R\x06length\x12\x16\n" +
 	"\x05error\x18\x02 \x01(\tH\x00R\x05errorB\b\n" +
-	"\x06result\"\x8e\x01\n" +
-	"\fLMoveRequest\x12\x16\n" +
+	"\x06result\"\x91\x01\n" +
+	"\x0fListMoveRequest\x12\x16\n" +
 	"\x06source\x18\x01 \x01(\tR\x06source\x12 \n" +
 	"\vdestination\x18\x02 \x01(\tR\vdestination\x12#\n" +
 	"\x04from\x18\x03 \x01(\x0e2\x0f.clavis.v1.SideR\x04from\x12\x1f\n" +
-	"\x02to\x18\x04 \x01(\x0e2\x0f.clavis.v1.SideR\x02to\"\x89\x01\n" +
-	"\rLMoveResponse\x12%\n" +
+	"\x02to\x18\x04 \x01(\x0e2\x0f.clavis.v1.SideR\x02to\"\x8c\x01\n" +
+	"\x10ListMoveResponse\x12%\n" +
 	"\rmoved_element\x18\x01 \x01(\fH\x00R\fmovedElement\x12/\n" +
 	"\tnot_found\x18\x02 \x01(\v2\x10.clavis.v1.EmptyH\x00R\bnotFound\x12\x16\n" +
 	"\x05error\x18\x03 \x01(\tH\x00R\x05errorB\b\n" +
-	"\x06result\"I\n" +
-	"\rLRangeRequest\x12\x10\n" +
+	"\x06result\"L\n" +
+	"\x10ListRangeRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05start\x18\x02 \x01(\x03R\x05start\x12\x10\n" +
-	"\x03end\x18\x03 \x01(\x03R\x03end\"(\n" +
-	"\n" +
-	"LRangeData\x12\x1a\n" +
-	"\belements\x18\x01 \x03(\fR\belements\"_\n" +
-	"\x0eLRangeResponse\x12+\n" +
-	"\x04data\x18\x01 \x01(\v2\x15.clavis.v1.LRangeDataH\x00R\x04data\x12\x16\n" +
+	"\x03end\x18\x03 \x01(\x03R\x03end\"+\n" +
+	"\rListRangeData\x12\x1a\n" +
+	"\belements\x18\x01 \x03(\fR\belements\"e\n" +
+	"\x11ListRangeResponse\x12.\n" +
+	"\x04data\x18\x01 \x01(\v2\x18.clavis.v1.ListRangeDataH\x00R\x04data\x12\x16\n" +
 	"\x05error\x18\x02 \x01(\tH\x00R\x05errorB\b\n" +
-	"\x06result\"J\n" +
-	"\fLTrimRequest\x12\x10\n" +
+	"\x06result\"M\n" +
+	"\x0fListTrimRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05start\x18\x02 \x01(\x03R\x05start\x12\x12\n" +
-	"\x04stop\x18\x03 \x01(\x03R\x04stop\"C\n" +
-	"\rLTrimResponse\x12\x10\n" +
+	"\x04stop\x18\x03 \x01(\x03R\x04stop\"F\n" +
+	"\x10ListTrimResponse\x12\x10\n" +
 	"\x02ok\x18\x01 \x01(\tH\x00R\x02ok\x12\x16\n" +
 	"\x05error\x18\x02 \x01(\tH\x00R\x05errorB\b\n" +
 	"\x06result*;\n" +
@@ -1762,18 +1761,18 @@ const file_clavis_proto_rawDesc = "" +
 	"\x10SIDE_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tSIDE_LEFT\x10\x01\x12\x0e\n" +
 	"\n" +
-	"SIDE_RIGHT\x10\x022\xdc\x04\n" +
+	"SIDE_RIGHT\x10\x022\x92\x05\n" +
 	"\x06Clavis\x126\n" +
 	"\x03Get\x12\x15.clavis.v1.GetRequest\x1a\x16.clavis.v1.GetResponse\"\x00\x126\n" +
 	"\x03Set\x12\x15.clavis.v1.SetRequest\x1a\x16.clavis.v1.SetResponse\"\x00\x126\n" +
 	"\x03Del\x12\x15.clavis.v1.DelRequest\x1a\x16.clavis.v1.DelResponse\"\x00\x129\n" +
-	"\x04Ping\x12\x16.clavis.v1.PingRequest\x1a\x17.clavis.v1.PingResponse\"\x00\x12<\n" +
-	"\x05LPush\x12\x17.clavis.v1.LPushRequest\x1a\x18.clavis.v1.LPushResponse\"\x00\x129\n" +
-	"\x04LPop\x12\x16.clavis.v1.LPopRequest\x1a\x17.clavis.v1.LPopResponse\"\x00\x129\n" +
-	"\x04LLen\x12\x16.clavis.v1.LLenRequest\x1a\x17.clavis.v1.LLenResponse\"\x00\x12<\n" +
-	"\x05LMove\x12\x17.clavis.v1.LMoveRequest\x1a\x18.clavis.v1.LMoveResponse\"\x00\x12?\n" +
-	"\x06LRange\x12\x18.clavis.v1.LRangeRequest\x1a\x19.clavis.v1.LRangeResponse\"\x00\x12<\n" +
-	"\x05LTrim\x12\x17.clavis.v1.LTrimRequest\x1a\x18.clavis.v1.LTrimResponse\"\x00B\vZ\tpkg/protob\x06proto3"
+	"\x04Ping\x12\x16.clavis.v1.PingRequest\x1a\x17.clavis.v1.PingResponse\"\x00\x12E\n" +
+	"\bListPush\x12\x1a.clavis.v1.ListPushRequest\x1a\x1b.clavis.v1.ListPushResponse\"\x00\x12B\n" +
+	"\aListPop\x12\x19.clavis.v1.ListPopRequest\x1a\x1a.clavis.v1.ListPopResponse\"\x00\x12B\n" +
+	"\aListLen\x12\x19.clavis.v1.ListLenRequest\x1a\x1a.clavis.v1.ListLenResponse\"\x00\x12E\n" +
+	"\bListMove\x12\x1a.clavis.v1.ListMoveRequest\x1a\x1b.clavis.v1.ListMoveResponse\"\x00\x12H\n" +
+	"\tListRange\x12\x1b.clavis.v1.ListRangeRequest\x1a\x1c.clavis.v1.ListRangeResponse\"\x00\x12E\n" +
+	"\bListTrim\x12\x1a.clavis.v1.ListTrimRequest\x1a\x1b.clavis.v1.ListTrimResponse\"\x00B\vZ\tpkg/protob\x06proto3"
 
 var (
 	file_clavis_proto_rawDescOnce sync.Once
@@ -1790,57 +1789,57 @@ func file_clavis_proto_rawDescGZIP() []byte {
 var file_clavis_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_clavis_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_clavis_proto_goTypes = []any{
-	(Side)(0),              // 0: clavis.v1.Side
-	(*Empty)(nil),          // 1: clavis.v1.Empty
-	(*GetRequest)(nil),     // 2: clavis.v1.GetRequest
-	(*GetResponse)(nil),    // 3: clavis.v1.GetResponse
-	(*SetRequest)(nil),     // 4: clavis.v1.SetRequest
-	(*SetResponse)(nil),    // 5: clavis.v1.SetResponse
-	(*DelRequest)(nil),     // 6: clavis.v1.DelRequest
-	(*DelResponse)(nil),    // 7: clavis.v1.DelResponse
-	(*PingRequest)(nil),    // 8: clavis.v1.PingRequest
-	(*PingResponse)(nil),   // 9: clavis.v1.PingResponse
-	(*LPushRequest)(nil),   // 10: clavis.v1.LPushRequest
-	(*LPushResponse)(nil),  // 11: clavis.v1.LPushResponse
-	(*LPopRequest)(nil),    // 12: clavis.v1.LPopRequest
-	(*LPopResponse)(nil),   // 13: clavis.v1.LPopResponse
-	(*LLenRequest)(nil),    // 14: clavis.v1.LLenRequest
-	(*LLenResponse)(nil),   // 15: clavis.v1.LLenResponse
-	(*LMoveRequest)(nil),   // 16: clavis.v1.LMoveRequest
-	(*LMoveResponse)(nil),  // 17: clavis.v1.LMoveResponse
-	(*LRangeRequest)(nil),  // 18: clavis.v1.LRangeRequest
-	(*LRangeData)(nil),     // 19: clavis.v1.LRangeData
-	(*LRangeResponse)(nil), // 20: clavis.v1.LRangeResponse
-	(*LTrimRequest)(nil),   // 21: clavis.v1.LTrimRequest
-	(*LTrimResponse)(nil),  // 22: clavis.v1.LTrimResponse
+	(Side)(0),                 // 0: clavis.v1.Side
+	(*Empty)(nil),             // 1: clavis.v1.Empty
+	(*GetRequest)(nil),        // 2: clavis.v1.GetRequest
+	(*GetResponse)(nil),       // 3: clavis.v1.GetResponse
+	(*SetRequest)(nil),        // 4: clavis.v1.SetRequest
+	(*SetResponse)(nil),       // 5: clavis.v1.SetResponse
+	(*DelRequest)(nil),        // 6: clavis.v1.DelRequest
+	(*DelResponse)(nil),       // 7: clavis.v1.DelResponse
+	(*PingRequest)(nil),       // 8: clavis.v1.PingRequest
+	(*PingResponse)(nil),      // 9: clavis.v1.PingResponse
+	(*ListPushRequest)(nil),   // 10: clavis.v1.ListPushRequest
+	(*ListPushResponse)(nil),  // 11: clavis.v1.ListPushResponse
+	(*ListPopRequest)(nil),    // 12: clavis.v1.ListPopRequest
+	(*ListPopResponse)(nil),   // 13: clavis.v1.ListPopResponse
+	(*ListLenRequest)(nil),    // 14: clavis.v1.ListLenRequest
+	(*ListLenResponse)(nil),   // 15: clavis.v1.ListLenResponse
+	(*ListMoveRequest)(nil),   // 16: clavis.v1.ListMoveRequest
+	(*ListMoveResponse)(nil),  // 17: clavis.v1.ListMoveResponse
+	(*ListRangeRequest)(nil),  // 18: clavis.v1.ListRangeRequest
+	(*ListRangeData)(nil),     // 19: clavis.v1.ListRangeData
+	(*ListRangeResponse)(nil), // 20: clavis.v1.ListRangeResponse
+	(*ListTrimRequest)(nil),   // 21: clavis.v1.ListTrimRequest
+	(*ListTrimResponse)(nil),  // 22: clavis.v1.ListTrimResponse
 }
 var file_clavis_proto_depIdxs = []int32{
 	1,  // 0: clavis.v1.GetResponse.not_found:type_name -> clavis.v1.Empty
-	1,  // 1: clavis.v1.LPopResponse.not_found:type_name -> clavis.v1.Empty
-	0,  // 2: clavis.v1.LMoveRequest.from:type_name -> clavis.v1.Side
-	0,  // 3: clavis.v1.LMoveRequest.to:type_name -> clavis.v1.Side
-	1,  // 4: clavis.v1.LMoveResponse.not_found:type_name -> clavis.v1.Empty
-	19, // 5: clavis.v1.LRangeResponse.data:type_name -> clavis.v1.LRangeData
+	1,  // 1: clavis.v1.ListPopResponse.not_found:type_name -> clavis.v1.Empty
+	0,  // 2: clavis.v1.ListMoveRequest.from:type_name -> clavis.v1.Side
+	0,  // 3: clavis.v1.ListMoveRequest.to:type_name -> clavis.v1.Side
+	1,  // 4: clavis.v1.ListMoveResponse.not_found:type_name -> clavis.v1.Empty
+	19, // 5: clavis.v1.ListRangeResponse.data:type_name -> clavis.v1.ListRangeData
 	2,  // 6: clavis.v1.Clavis.Get:input_type -> clavis.v1.GetRequest
 	4,  // 7: clavis.v1.Clavis.Set:input_type -> clavis.v1.SetRequest
 	6,  // 8: clavis.v1.Clavis.Del:input_type -> clavis.v1.DelRequest
 	8,  // 9: clavis.v1.Clavis.Ping:input_type -> clavis.v1.PingRequest
-	10, // 10: clavis.v1.Clavis.LPush:input_type -> clavis.v1.LPushRequest
-	12, // 11: clavis.v1.Clavis.LPop:input_type -> clavis.v1.LPopRequest
-	14, // 12: clavis.v1.Clavis.LLen:input_type -> clavis.v1.LLenRequest
-	16, // 13: clavis.v1.Clavis.LMove:input_type -> clavis.v1.LMoveRequest
-	18, // 14: clavis.v1.Clavis.LRange:input_type -> clavis.v1.LRangeRequest
-	21, // 15: clavis.v1.Clavis.LTrim:input_type -> clavis.v1.LTrimRequest
+	10, // 10: clavis.v1.Clavis.ListPush:input_type -> clavis.v1.ListPushRequest
+	12, // 11: clavis.v1.Clavis.ListPop:input_type -> clavis.v1.ListPopRequest
+	14, // 12: clavis.v1.Clavis.ListLen:input_type -> clavis.v1.ListLenRequest
+	16, // 13: clavis.v1.Clavis.ListMove:input_type -> clavis.v1.ListMoveRequest
+	18, // 14: clavis.v1.Clavis.ListRange:input_type -> clavis.v1.ListRangeRequest
+	21, // 15: clavis.v1.Clavis.ListTrim:input_type -> clavis.v1.ListTrimRequest
 	3,  // 16: clavis.v1.Clavis.Get:output_type -> clavis.v1.GetResponse
 	5,  // 17: clavis.v1.Clavis.Set:output_type -> clavis.v1.SetResponse
 	7,  // 18: clavis.v1.Clavis.Del:output_type -> clavis.v1.DelResponse
 	9,  // 19: clavis.v1.Clavis.Ping:output_type -> clavis.v1.PingResponse
-	11, // 20: clavis.v1.Clavis.LPush:output_type -> clavis.v1.LPushResponse
-	13, // 21: clavis.v1.Clavis.LPop:output_type -> clavis.v1.LPopResponse
-	15, // 22: clavis.v1.Clavis.LLen:output_type -> clavis.v1.LLenResponse
-	17, // 23: clavis.v1.Clavis.LMove:output_type -> clavis.v1.LMoveResponse
-	20, // 24: clavis.v1.Clavis.LRange:output_type -> clavis.v1.LRangeResponse
-	22, // 25: clavis.v1.Clavis.LTrim:output_type -> clavis.v1.LTrimResponse
+	11, // 20: clavis.v1.Clavis.ListPush:output_type -> clavis.v1.ListPushResponse
+	13, // 21: clavis.v1.Clavis.ListPop:output_type -> clavis.v1.ListPopResponse
+	15, // 22: clavis.v1.Clavis.ListLen:output_type -> clavis.v1.ListLenResponse
+	17, // 23: clavis.v1.Clavis.ListMove:output_type -> clavis.v1.ListMoveResponse
+	20, // 24: clavis.v1.Clavis.ListRange:output_type -> clavis.v1.ListRangeResponse
+	22, // 25: clavis.v1.Clavis.ListTrim:output_type -> clavis.v1.ListTrimResponse
 	16, // [16:26] is the sub-list for method output_type
 	6,  // [6:16] is the sub-list for method input_type
 	6,  // [6:6] is the sub-list for extension type_name
@@ -1859,12 +1858,12 @@ func file_clavis_proto_init() {
 		(*GetResponse_Error)(nil),
 	}
 	file_clavis_proto_msgTypes[3].OneofWrappers = []any{
-		(*SetRequest_Nx)(nil),
-		(*SetRequest_Xx)(nil),
-		(*SetRequest_ExSeconds)(nil),
-		(*SetRequest_PxMilliseconds)(nil),
-		(*SetRequest_ExatSeconds)(nil),
-		(*SetRequest_PxatMilliseconds)(nil),
+		(*SetRequest_Create)(nil),
+		(*SetRequest_Update)(nil),
+		(*SetRequest_Seconds)(nil),
+		(*SetRequest_Milliseconds)(nil),
+		(*SetRequest_UnixSeconds)(nil),
+		(*SetRequest_UnixMilliseconds)(nil),
 		(*SetRequest_KeepTtl)(nil),
 	}
 	file_clavis_proto_msgTypes[4].OneofWrappers = []any{
@@ -1872,30 +1871,30 @@ func file_clavis_proto_init() {
 		(*SetResponse_Error)(nil),
 	}
 	file_clavis_proto_msgTypes[10].OneofWrappers = []any{
-		(*LPushResponse_ListLength)(nil),
-		(*LPushResponse_Error)(nil),
+		(*ListPushResponse_ListLength)(nil),
+		(*ListPushResponse_Error)(nil),
 	}
 	file_clavis_proto_msgTypes[12].OneofWrappers = []any{
-		(*LPopResponse_Value)(nil),
-		(*LPopResponse_NotFound)(nil),
-		(*LPopResponse_Error)(nil),
+		(*ListPopResponse_Value)(nil),
+		(*ListPopResponse_NotFound)(nil),
+		(*ListPopResponse_Error)(nil),
 	}
 	file_clavis_proto_msgTypes[14].OneofWrappers = []any{
-		(*LLenResponse_Length)(nil),
-		(*LLenResponse_Error)(nil),
+		(*ListLenResponse_Length)(nil),
+		(*ListLenResponse_Error)(nil),
 	}
 	file_clavis_proto_msgTypes[16].OneofWrappers = []any{
-		(*LMoveResponse_MovedElement)(nil),
-		(*LMoveResponse_NotFound)(nil),
-		(*LMoveResponse_Error)(nil),
+		(*ListMoveResponse_MovedElement)(nil),
+		(*ListMoveResponse_NotFound)(nil),
+		(*ListMoveResponse_Error)(nil),
 	}
 	file_clavis_proto_msgTypes[19].OneofWrappers = []any{
-		(*LRangeResponse_Data)(nil),
-		(*LRangeResponse_Error)(nil),
+		(*ListRangeResponse_Data)(nil),
+		(*ListRangeResponse_Error)(nil),
 	}
 	file_clavis_proto_msgTypes[21].OneofWrappers = []any{
-		(*LTrimResponse_Ok)(nil),
-		(*LTrimResponse_Error)(nil),
+		(*ListTrimResponse_Ok)(nil),
+		(*ListTrimResponse_Error)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

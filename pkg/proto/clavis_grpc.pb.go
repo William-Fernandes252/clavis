@@ -19,16 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Clavis_Get_FullMethodName    = "/clavis.v1.Clavis/Get"
-	Clavis_Set_FullMethodName    = "/clavis.v1.Clavis/Set"
-	Clavis_Del_FullMethodName    = "/clavis.v1.Clavis/Del"
-	Clavis_Ping_FullMethodName   = "/clavis.v1.Clavis/Ping"
-	Clavis_LPush_FullMethodName  = "/clavis.v1.Clavis/LPush"
-	Clavis_LPop_FullMethodName   = "/clavis.v1.Clavis/LPop"
-	Clavis_LLen_FullMethodName   = "/clavis.v1.Clavis/LLen"
-	Clavis_LMove_FullMethodName  = "/clavis.v1.Clavis/LMove"
-	Clavis_LRange_FullMethodName = "/clavis.v1.Clavis/LRange"
-	Clavis_LTrim_FullMethodName  = "/clavis.v1.Clavis/LTrim"
+	Clavis_Get_FullMethodName       = "/clavis.v1.Clavis/Get"
+	Clavis_Set_FullMethodName       = "/clavis.v1.Clavis/Set"
+	Clavis_Del_FullMethodName       = "/clavis.v1.Clavis/Del"
+	Clavis_Ping_FullMethodName      = "/clavis.v1.Clavis/Ping"
+	Clavis_ListPush_FullMethodName  = "/clavis.v1.Clavis/ListPush"
+	Clavis_ListPop_FullMethodName   = "/clavis.v1.Clavis/ListPop"
+	Clavis_ListLen_FullMethodName   = "/clavis.v1.Clavis/ListLen"
+	Clavis_ListMove_FullMethodName  = "/clavis.v1.Clavis/ListMove"
+	Clavis_ListRange_FullMethodName = "/clavis.v1.Clavis/ListRange"
+	Clavis_ListTrim_FullMethodName  = "/clavis.v1.Clavis/ListTrim"
 )
 
 // ClavisClient is the client API for Clavis service.
@@ -57,34 +57,34 @@ type ClavisClient interface {
 	// Ping checks the connection to the server.
 	// Returns a simple acknowledgment message.
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
-	// LPush pushes one or more values to the left end of a list.
+	// ListPush pushes one or more values to the left end of a list.
 	// Returns the length of the list after the operation.
-	LPush(ctx context.Context, in *LPushRequest, opts ...grpc.CallOption) (*LPushResponse, error)
-	// LPop pops the first element from a list.
+	ListPush(ctx context.Context, in *ListPushRequest, opts ...grpc.CallOption) (*ListPushResponse, error)
+	// ListPop pops the first element from a list.
 	// Returns the popped value or an error if the list is
 	// empty or does not exist.
-	LPop(ctx context.Context, in *LPopRequest, opts ...grpc.CallOption) (*LPopResponse, error)
-	// LLen retrieves the length of a list.
+	ListPop(ctx context.Context, in *ListPopRequest, opts ...grpc.CallOption) (*ListPopResponse, error)
+	// ListLen retrieves the length of a list.
 	// Returns the length or an error if the key does not exist or is not a list
-	LLen(ctx context.Context, in *LLenRequest, opts ...grpc.CallOption) (*LLenResponse, error)
-	// LMove moves an element from one list to another.
+	ListLen(ctx context.Context, in *ListLenRequest, opts ...grpc.CallOption) (*ListLenResponse, error)
+	// ListMove moves an element from one list to another.
 	// The element is moved from the specified side of the source
 	// list to the specified side of the destination list.
 	// Returns the moved element or an error if the source list is
 	// empty or does not exist
-	LMove(ctx context.Context, in *LMoveRequest, opts ...grpc.CallOption) (*LMoveResponse, error)
-	// LRange retrieves a range of elements from a list.
+	ListMove(ctx context.Context, in *ListMoveRequest, opts ...grpc.CallOption) (*ListMoveResponse, error)
+	// ListRange retrieves a range of elements from a list.
 	// The range is specified by start and end indices.
 	// Returns the elements in the specified range or an
 	// error if the key does not exist or
 	// is not a list.
-	LRange(ctx context.Context, in *LRangeRequest, opts ...grpc.CallOption) (*LRangeResponse, error)
-	// LTrim trims a list to the specified range.
+	ListRange(ctx context.Context, in *ListRangeRequest, opts ...grpc.CallOption) (*ListRangeResponse, error)
+	// ListTrim trims a list to the specified range.
 	// The range is specified by start and stop indices.
 	// Returns an acknowledgment on success or an error
 	// if the key does not exist or is not
 	// a list.
-	LTrim(ctx context.Context, in *LTrimRequest, opts ...grpc.CallOption) (*LTrimResponse, error)
+	ListTrim(ctx context.Context, in *ListTrimRequest, opts ...grpc.CallOption) (*ListTrimResponse, error)
 }
 
 type clavisClient struct {
@@ -135,60 +135,60 @@ func (c *clavisClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.C
 	return out, nil
 }
 
-func (c *clavisClient) LPush(ctx context.Context, in *LPushRequest, opts ...grpc.CallOption) (*LPushResponse, error) {
+func (c *clavisClient) ListPush(ctx context.Context, in *ListPushRequest, opts ...grpc.CallOption) (*ListPushResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LPushResponse)
-	err := c.cc.Invoke(ctx, Clavis_LPush_FullMethodName, in, out, cOpts...)
+	out := new(ListPushResponse)
+	err := c.cc.Invoke(ctx, Clavis_ListPush_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *clavisClient) LPop(ctx context.Context, in *LPopRequest, opts ...grpc.CallOption) (*LPopResponse, error) {
+func (c *clavisClient) ListPop(ctx context.Context, in *ListPopRequest, opts ...grpc.CallOption) (*ListPopResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LPopResponse)
-	err := c.cc.Invoke(ctx, Clavis_LPop_FullMethodName, in, out, cOpts...)
+	out := new(ListPopResponse)
+	err := c.cc.Invoke(ctx, Clavis_ListPop_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *clavisClient) LLen(ctx context.Context, in *LLenRequest, opts ...grpc.CallOption) (*LLenResponse, error) {
+func (c *clavisClient) ListLen(ctx context.Context, in *ListLenRequest, opts ...grpc.CallOption) (*ListLenResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LLenResponse)
-	err := c.cc.Invoke(ctx, Clavis_LLen_FullMethodName, in, out, cOpts...)
+	out := new(ListLenResponse)
+	err := c.cc.Invoke(ctx, Clavis_ListLen_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *clavisClient) LMove(ctx context.Context, in *LMoveRequest, opts ...grpc.CallOption) (*LMoveResponse, error) {
+func (c *clavisClient) ListMove(ctx context.Context, in *ListMoveRequest, opts ...grpc.CallOption) (*ListMoveResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LMoveResponse)
-	err := c.cc.Invoke(ctx, Clavis_LMove_FullMethodName, in, out, cOpts...)
+	out := new(ListMoveResponse)
+	err := c.cc.Invoke(ctx, Clavis_ListMove_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *clavisClient) LRange(ctx context.Context, in *LRangeRequest, opts ...grpc.CallOption) (*LRangeResponse, error) {
+func (c *clavisClient) ListRange(ctx context.Context, in *ListRangeRequest, opts ...grpc.CallOption) (*ListRangeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LRangeResponse)
-	err := c.cc.Invoke(ctx, Clavis_LRange_FullMethodName, in, out, cOpts...)
+	out := new(ListRangeResponse)
+	err := c.cc.Invoke(ctx, Clavis_ListRange_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *clavisClient) LTrim(ctx context.Context, in *LTrimRequest, opts ...grpc.CallOption) (*LTrimResponse, error) {
+func (c *clavisClient) ListTrim(ctx context.Context, in *ListTrimRequest, opts ...grpc.CallOption) (*ListTrimResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LTrimResponse)
-	err := c.cc.Invoke(ctx, Clavis_LTrim_FullMethodName, in, out, cOpts...)
+	out := new(ListTrimResponse)
+	err := c.cc.Invoke(ctx, Clavis_ListTrim_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -221,34 +221,34 @@ type ClavisServer interface {
 	// Ping checks the connection to the server.
 	// Returns a simple acknowledgment message.
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
-	// LPush pushes one or more values to the left end of a list.
+	// ListPush pushes one or more values to the left end of a list.
 	// Returns the length of the list after the operation.
-	LPush(context.Context, *LPushRequest) (*LPushResponse, error)
-	// LPop pops the first element from a list.
+	ListPush(context.Context, *ListPushRequest) (*ListPushResponse, error)
+	// ListPop pops the first element from a list.
 	// Returns the popped value or an error if the list is
 	// empty or does not exist.
-	LPop(context.Context, *LPopRequest) (*LPopResponse, error)
-	// LLen retrieves the length of a list.
+	ListPop(context.Context, *ListPopRequest) (*ListPopResponse, error)
+	// ListLen retrieves the length of a list.
 	// Returns the length or an error if the key does not exist or is not a list
-	LLen(context.Context, *LLenRequest) (*LLenResponse, error)
-	// LMove moves an element from one list to another.
+	ListLen(context.Context, *ListLenRequest) (*ListLenResponse, error)
+	// ListMove moves an element from one list to another.
 	// The element is moved from the specified side of the source
 	// list to the specified side of the destination list.
 	// Returns the moved element or an error if the source list is
 	// empty or does not exist
-	LMove(context.Context, *LMoveRequest) (*LMoveResponse, error)
-	// LRange retrieves a range of elements from a list.
+	ListMove(context.Context, *ListMoveRequest) (*ListMoveResponse, error)
+	// ListRange retrieves a range of elements from a list.
 	// The range is specified by start and end indices.
 	// Returns the elements in the specified range or an
 	// error if the key does not exist or
 	// is not a list.
-	LRange(context.Context, *LRangeRequest) (*LRangeResponse, error)
-	// LTrim trims a list to the specified range.
+	ListRange(context.Context, *ListRangeRequest) (*ListRangeResponse, error)
+	// ListTrim trims a list to the specified range.
 	// The range is specified by start and stop indices.
 	// Returns an acknowledgment on success or an error
 	// if the key does not exist or is not
 	// a list.
-	LTrim(context.Context, *LTrimRequest) (*LTrimResponse, error)
+	ListTrim(context.Context, *ListTrimRequest) (*ListTrimResponse, error)
 	mustEmbedUnimplementedClavisServer()
 }
 
@@ -271,23 +271,23 @@ func (UnimplementedClavisServer) Del(context.Context, *DelRequest) (*DelResponse
 func (UnimplementedClavisServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
-func (UnimplementedClavisServer) LPush(context.Context, *LPushRequest) (*LPushResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LPush not implemented")
+func (UnimplementedClavisServer) ListPush(context.Context, *ListPushRequest) (*ListPushResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPush not implemented")
 }
-func (UnimplementedClavisServer) LPop(context.Context, *LPopRequest) (*LPopResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LPop not implemented")
+func (UnimplementedClavisServer) ListPop(context.Context, *ListPopRequest) (*ListPopResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPop not implemented")
 }
-func (UnimplementedClavisServer) LLen(context.Context, *LLenRequest) (*LLenResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LLen not implemented")
+func (UnimplementedClavisServer) ListLen(context.Context, *ListLenRequest) (*ListLenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListLen not implemented")
 }
-func (UnimplementedClavisServer) LMove(context.Context, *LMoveRequest) (*LMoveResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LMove not implemented")
+func (UnimplementedClavisServer) ListMove(context.Context, *ListMoveRequest) (*ListMoveResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListMove not implemented")
 }
-func (UnimplementedClavisServer) LRange(context.Context, *LRangeRequest) (*LRangeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LRange not implemented")
+func (UnimplementedClavisServer) ListRange(context.Context, *ListRangeRequest) (*ListRangeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListRange not implemented")
 }
-func (UnimplementedClavisServer) LTrim(context.Context, *LTrimRequest) (*LTrimResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LTrim not implemented")
+func (UnimplementedClavisServer) ListTrim(context.Context, *ListTrimRequest) (*ListTrimResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTrim not implemented")
 }
 func (UnimplementedClavisServer) mustEmbedUnimplementedClavisServer() {}
 func (UnimplementedClavisServer) testEmbeddedByValue()                {}
@@ -382,110 +382,110 @@ func _Clavis_Ping_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Clavis_LPush_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LPushRequest)
+func _Clavis_ListPush_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPushRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ClavisServer).LPush(ctx, in)
+		return srv.(ClavisServer).ListPush(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Clavis_LPush_FullMethodName,
+		FullMethod: Clavis_ListPush_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClavisServer).LPush(ctx, req.(*LPushRequest))
+		return srv.(ClavisServer).ListPush(ctx, req.(*ListPushRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Clavis_LPop_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LPopRequest)
+func _Clavis_ListPop_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPopRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ClavisServer).LPop(ctx, in)
+		return srv.(ClavisServer).ListPop(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Clavis_LPop_FullMethodName,
+		FullMethod: Clavis_ListPop_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClavisServer).LPop(ctx, req.(*LPopRequest))
+		return srv.(ClavisServer).ListPop(ctx, req.(*ListPopRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Clavis_LLen_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LLenRequest)
+func _Clavis_ListLen_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListLenRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ClavisServer).LLen(ctx, in)
+		return srv.(ClavisServer).ListLen(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Clavis_LLen_FullMethodName,
+		FullMethod: Clavis_ListLen_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClavisServer).LLen(ctx, req.(*LLenRequest))
+		return srv.(ClavisServer).ListLen(ctx, req.(*ListLenRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Clavis_LMove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LMoveRequest)
+func _Clavis_ListMove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMoveRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ClavisServer).LMove(ctx, in)
+		return srv.(ClavisServer).ListMove(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Clavis_LMove_FullMethodName,
+		FullMethod: Clavis_ListMove_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClavisServer).LMove(ctx, req.(*LMoveRequest))
+		return srv.(ClavisServer).ListMove(ctx, req.(*ListMoveRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Clavis_LRange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LRangeRequest)
+func _Clavis_ListRange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRangeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ClavisServer).LRange(ctx, in)
+		return srv.(ClavisServer).ListRange(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Clavis_LRange_FullMethodName,
+		FullMethod: Clavis_ListRange_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClavisServer).LRange(ctx, req.(*LRangeRequest))
+		return srv.(ClavisServer).ListRange(ctx, req.(*ListRangeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Clavis_LTrim_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LTrimRequest)
+func _Clavis_ListTrim_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTrimRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ClavisServer).LTrim(ctx, in)
+		return srv.(ClavisServer).ListTrim(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Clavis_LTrim_FullMethodName,
+		FullMethod: Clavis_ListTrim_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClavisServer).LTrim(ctx, req.(*LTrimRequest))
+		return srv.(ClavisServer).ListTrim(ctx, req.(*ListTrimRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -514,28 +514,28 @@ var Clavis_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Clavis_Ping_Handler,
 		},
 		{
-			MethodName: "LPush",
-			Handler:    _Clavis_LPush_Handler,
+			MethodName: "ListPush",
+			Handler:    _Clavis_ListPush_Handler,
 		},
 		{
-			MethodName: "LPop",
-			Handler:    _Clavis_LPop_Handler,
+			MethodName: "ListPop",
+			Handler:    _Clavis_ListPop_Handler,
 		},
 		{
-			MethodName: "LLen",
-			Handler:    _Clavis_LLen_Handler,
+			MethodName: "ListLen",
+			Handler:    _Clavis_ListLen_Handler,
 		},
 		{
-			MethodName: "LMove",
-			Handler:    _Clavis_LMove_Handler,
+			MethodName: "ListMove",
+			Handler:    _Clavis_ListMove_Handler,
 		},
 		{
-			MethodName: "LRange",
-			Handler:    _Clavis_LRange_Handler,
+			MethodName: "ListRange",
+			Handler:    _Clavis_ListRange_Handler,
 		},
 		{
-			MethodName: "LTrim",
-			Handler:    _Clavis_LTrim_Handler,
+			MethodName: "ListTrim",
+			Handler:    _Clavis_ListTrim_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
